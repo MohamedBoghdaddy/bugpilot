@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  TESTER
+  DEVELOPER
+  ADMIN
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum BugStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  FIXED
+  CLOSED
+  VERIFIED
+}
+
+enum Severity {
+  MINOR
+  MAJOR
+  CRITICAL
+  BLOCKER
+}
+
+enum StoryStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(CUSTOMER)
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reportedBugs Bug[]        @relation("ReportedBugs")
+  assignedBugs Bug[]        @relation("AssignedBugs")
+  comments     Comment[]
+  attachments  Attachment[]
+  activities   Activity[]
+  tasks        Task[]
+
+  @@map("users")
+}
+
+model Bug {
+  id               String    @id @default(uuid())
+  title            String
+  description      String
+  stepsToReproduce String?
+  priority         Priority  @default(MEDIUM)
+  status           BugStatus @default(OPEN)
+  severity         Severity  @default(MAJOR)
+  reporterId       String
+  assigneeId       String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  reporter    User         @relation("ReportedBugs", fields: [reporterId], references: [id])
+  assignee    User?        @relation("AssignedBugs", fields: [assigneeId], references: [id])
+  comments    Comment[]
+  attachments Attachment[]
+  activities  Activity[]
+  tasks       Task[]
+
+  @@map("bugs")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  bugId     String
+  authorId  String
+  createdAt DateTime @default(now())
+
+  bug    Bug  @relation(fields: [bugId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id])
+
+  @@map("comments")
+}
+
+model Attachment {
+  id         String   @id @default(uuid())
+  filename   String
+  url        String
+  bugId      String
+  uploadedBy String
+  createdAt  DateTime @default(now())
+
+  bug      Bug  @relation(fields: [bugId], references: [id], onDelete: Cascade)
+  uploader User @relation(fields: [uploadedBy], references: [id])
+
+  @@map("attachments")
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  action    String
+  details   String?
+  bugId     String?
+  userId    String
+  createdAt DateTime @default(now())
+
+  bug  Bug?  @relation(fields: [bugId], references: [id], onDelete: SetNull)
+  user User  @relation(fields: [userId], references: [id])
+
+  @@map("activities")
+}
+
+model Story {
+  id          String      @id @default(uuid())
+  title       String
+  description String?
+  status      StoryStatus @default(TODO)
+  priority    Priority    @default(MEDIUM)
+  storyPoints Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  tasks Task[]
+
+  @@map("stories")
+}
+
+model Task {
+  id         String   @id @default(uuid())
+  title      String
+  status     String   @default("TODO")
+  assigneeId String?
+  bugId      String?
+  storyId    String?
+  dueDate    DateTime?
+  createdAt  DateTime @default(now())
+
+  assignee User?  @relation(fields: [assigneeId], references: [id])
+  bug      Bug?   @relation(fields: [bugId], references: [id], onDelete: SetNull)
+  story    Story? @relation(fields: [storyId], references: [id], onDelete: SetNull)
+
+  @@map("tasks")
+}

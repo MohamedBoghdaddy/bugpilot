@@ -1,5 +1,6 @@
-const openAIKey = process.env.OPENAI_API_KEY;
-const openAIEndpoint = "https://api.openai.com/v1/chat/completions";
+const geminiKey = process.env.GEMINI_API_KEY;
+const geminiModel = process.env.GEMINI_MODEL || "gemini-1.5-mini";
+const geminiBaseUrl = "https://generativelanguage.googleapis.com/v1beta2";
 
 function fallbackPriority(description) {
   const text = description?.toLowerCase() || "";
@@ -30,71 +31,79 @@ function createSummary(title, description) {
   return `Summary: ${title}. ${snippet}${snippet.length >= 280 ? "..." : ""}`;
 }
 
-async function callOpenAI(prompt, temperature = 0.3) {
-  if (!openAIKey) return null;
+async function callGemini(prompt, temperature = 0.3) {
+  if (!geminiKey) return null;
+  const url = `${geminiBaseUrl}/models/${geminiModel}:generateText?key=${encodeURIComponent(geminiKey)}`;
+
   try {
-    const response = await fetch(openAIEndpoint, {
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${openAIKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
+        prompt: { text: prompt },
         temperature,
-        max_tokens: 200,
+        maxOutputTokens: 200,
       }),
     });
+
     const data = await response.json();
-    if (data?.choices?.[0]?.message?.content) {
-      return data.choices[0].message.content.trim();
+    if (data?.candidates?.[0]?.output) {
+      return data.candidates[0].output.trim();
+    }
+
+    if (data?.output) {
+      return data.output.trim();
     }
   } catch (error) {
-    console.warn("OpenAI call failed:", error?.message || error);
+    console.warn("Gemini call failed:", error?.message || error);
   }
   return null;
 }
 
 async function classifyBugPriority(description) {
   const fallback = fallbackPriority(description);
-  if (!openAIKey) return { priority: fallback, source: "heuristic" };
+  if (!geminiKey) return { priority: fallback, source: "heuristic" };
 
   const prompt = `Classify the following bug description into one of these priorities: LOW, MEDIUM, HIGH, CRITICAL. Return only the single priority word.\n\nBug description:\n${description}`;
-  const result = await callOpenAI(prompt);
+  const result = await callGemini(prompt);
   const priority = result
     ? result
         .toUpperCase()
         .trim()
         .match(/LOW|MEDIUM|HIGH|CRITICAL/)
     : fallback;
+
   return {
     priority: priority || fallback,
-    source: priority ? "openai" : "heuristic",
+    source: priority ? "gemini" : "heuristic",
   };
 }
 
 async function recommendAssignee(title, description) {
   const fallback = fallbackAssignee(title, description);
-  if (!openAIKey) return { assignee: fallback, source: "heuristic" };
+  if (!geminiKey) return { assignee: fallback, source: "heuristic" };
 
   const prompt = `Based on the title and description below, recommend the best type of team member to assign this bug to. Keep the answer short.\n\nTitle: ${title}\n\nDescription: ${description}`;
-  const result = await callOpenAI(prompt);
+  const result = await callGemini(prompt);
+
   return {
     assignee: result || fallback,
-    source: result ? "openai" : "heuristic",
+    source: result ? "gemini" : "heuristic",
   };
 }
 
 async function summarizeBug(title, description) {
   const fallback = createSummary(title, description);
-  if (!openAIKey) return { summary: fallback, source: "heuristic" };
+  if (!geminiKey) return { summary: fallback, source: "heuristic" };
 
   const prompt = `Write a short bug summary from the title and description below. Keep it under 50 words.\n\nTitle: ${title}\n\nDescription: ${description}`;
-  const result = await callOpenAI(prompt);
+  const result = await callGemini(prompt);
+
   return {
     summary: result || fallback,
-    source: result ? "openai" : "heuristic",
+    source: result ? "gemini" : "heuristic",
   };
 }
 

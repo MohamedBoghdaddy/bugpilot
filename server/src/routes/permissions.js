@@ -1,7 +1,7 @@
-const express = require('express');
-const { param, body, validationResult } = require('express-validator');
-const authenticate = require('../middleware/auth');
-const authorize = require('../middleware/rbac');
+import express from "express";
+import { param, body, validationResult } from "express-validator";
+import authenticate from "../middleware/auth.js";
+import authorize from "../middleware/rbac.js";
 
 const router = express.Router();
 
@@ -82,4 +82,4 @@ router.patch(
   }
 );
 
-module.exports = router;
+export default router;

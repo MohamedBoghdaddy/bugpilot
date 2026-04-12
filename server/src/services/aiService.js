@@ -107,8 +107,4 @@ async function summarizeBug(title, description) {
   };
 }
 
-module.exports = {
-  classifyBugPriority,
-  recommendAssignee,
-  summarizeBug,
-};
+export { classifyBugPriority, recommendAssignee, summarizeBug };

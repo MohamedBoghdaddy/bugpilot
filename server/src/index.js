@@ -1,24 +1,28 @@
-const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
-const path = require("path");
-const http = require("http");
-const { Server } = require("socket.io");
+import { fileURLToPath } from "url";
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import path from "path";
+import http from "http";
+import { Server } from "socket.io";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 process.env.DATABASE_URL =
   process.env.DATABASE_URL || process.env.MONGO_URL || process.env.MONGODB_URL;
 
-const authRoutes = require("./routes/auth");
-const bugRoutes = require("./routes/bugs");
-const commentRoutes = require("./routes/comments");
-const userRoutes = require("./routes/users");
-const adminRoutes = require("./routes/admin");
-const reportRoutes = require("./routes/reports");
-const storyRoutes = require("./routes/stories");
-const taskRoutes = require("./routes/tasks");
-const permissionRoutes = require("./routes/permissions");
-const aiRoutes = require("./routes/ai");
+import authRoutes from "./routes/auth.js";
+import bugRoutes from "./routes/bugs.js";
+import commentRoutes from "./routes/comments.js";
+import userRoutes from "./routes/users.js";
+import adminRoutes from "./routes/admin.js";
+import reportRoutes from "./routes/reports.js";
+import storyRoutes from "./routes/stories.js";
+import taskRoutes from "./routes/tasks.js";
+import permissionRoutes from "./routes/permissions.js";
+import aiRoutes from "./routes/ai.js";
 
 const app = express();
 
@@ -105,4 +109,4 @@ server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-module.exports = { app, server, io };
+export { app, server, io };

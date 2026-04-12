@@ -17,8 +17,4 @@ const EVENTS = {
   COMMENT_ADDED: "commentAdded",
 };
 
-module.exports = {
-  getIO,
-  emit,
-  EVENTS,
-};
+export { getIO, emit, EVENTS };

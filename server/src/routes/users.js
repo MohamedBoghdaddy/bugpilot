@@ -1,9 +1,9 @@
-const express = require('express');
-const { body, param, validationResult } = require('express-validator');
-const bcrypt = require('bcryptjs');
-const { PrismaClient } = require('@prisma/client');
-const authenticate = require('../middleware/auth');
-const authorize = require('../middleware/rbac');
+import express from "express";
+import { body, param, validationResult } from "express-validator";
+import bcrypt from "bcryptjs";
+import { PrismaClient } from "@prisma/client";
+import authenticate from "../middleware/auth.js";
+import authorize from "../middleware/rbac.js";
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -222,4 +222,4 @@ router.delete(
   }
 );
 
-module.exports = router;
+export default router;

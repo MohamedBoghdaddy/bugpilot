@@ -1,8 +1,8 @@
-const express = require("express");
-const { body, param, validationResult } = require("express-validator");
-const { PrismaClient } = require("@prisma/client");
-const authenticate = require("../middleware/auth");
-const { emit, EVENTS } = require("../services/socketService");
+import express from "express";
+import { body, param, validationResult } from "express-validator";
+import { PrismaClient } from "@prisma/client";
+import authenticate from "../middleware/auth.js";
+import { emit, EVENTS } from "../services/socketService.js";
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -92,4 +92,4 @@ router.get("/bug/:bugId", param("bugId").isUUID(), async (req, res, next) => {
   }
 });
 
-module.exports = router;
+export default router;

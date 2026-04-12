@@ -44,7 +44,7 @@ enum StoryStatus {
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id        String   @id @default(uuid()) @map("_id")
   email     String   @unique
   password  String
   name      String
@@ -64,7 +64,7 @@ model User {
 }
 
 model Bug {
-  id               String    @id @default(uuid())
+  id               String    @id @default(uuid()) @map("_id")
   title            String
   description      String
   stepsToReproduce String?
@@ -87,7 +87,7 @@ model Bug {
 }
 
 model Comment {
-  id        String   @id @default(uuid())
+  id        String   @id @default(uuid()) @map("_id")
   content   String
   bugId     String
   authorId  String
@@ -100,7 +100,7 @@ model Comment {
 }
 
 model Attachment {
-  id         String   @id @default(uuid())
+  id         String   @id @default(uuid()) @map("_id")
   filename   String
   url        String
   bugId      String
@@ -114,7 +114,7 @@ model Attachment {
 }
 
 model Activity {
-  id        String   @id @default(uuid())
+  id        String   @id @default(uuid()) @map("_id")
   action    String
   details   String?
   bugId     String?
@@ -128,7 +128,7 @@ model Activity {
 }
 
 model Story {
-  id          String      @id @default(uuid())
+  id          String      @id @default(uuid()) @map("_id")
   title       String
   description String?
   status      StoryStatus @default(TODO)
@@ -143,7 +143,7 @@ model Story {
 }
 
 model Task {
-  id         String   @id @default(uuid())
+  id         String   @id @default(uuid()) @map("_id")
   title      String
   status     String   @default("TODO")
   assigneeId String?

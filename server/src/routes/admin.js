@@ -1,8 +1,8 @@
-const express = require('express');
-const { query, validationResult } = require('express-validator');
-const { PrismaClient } = require('@prisma/client');
-const authenticate = require('../middleware/auth');
-const authorize = require('../middleware/rbac');
+import express from "express";
+import { query, validationResult } from "express-validator";
+import { PrismaClient } from "@prisma/client";
+import authenticate from "../middleware/auth.js";
+import authorize from "../middleware/rbac.js";
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -128,4 +128,4 @@ router.get(
   }
 );
 
-module.exports = router;
+export default router;

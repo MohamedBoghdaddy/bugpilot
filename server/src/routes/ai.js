@@ -1,11 +1,9 @@
-const express = require("express");
-const { body, validationResult } = require("express-validator");
-const authenticate = require("../middleware/auth");
-const {
-  classifyBugPriority,
+import express from "express";
+import { body, validationResult } from "express-validator";
+import authenticate from "../middleware/auth.js";
+import { classifyBugPriority,
   recommendAssignee,
-  summarizeBug,
-} = require("../services/aiService");
+  summarizeBug, } from "../services/aiService.js";
 
 const router = express.Router();
 router.use(authenticate);
@@ -81,4 +79,4 @@ router.post(
   },
 );
 
-module.exports = router;
+export default router;

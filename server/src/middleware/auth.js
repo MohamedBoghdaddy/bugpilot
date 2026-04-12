@@ -1,5 +1,5 @@
-const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
+import jwt from "jsonwebtoken";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -43,4 +43,4 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-module.exports = authenticate;
+export default authenticate;

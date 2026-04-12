@@ -1,19 +1,20 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import DashboardLayout from './components/layout/DashboardLayout';
-import LoginPage from './pages/auth/LoginPage';
-import RegisterPage from './pages/auth/RegisterPage';
-import DashboardPage from './pages/dashboard/DashboardPage';
-import BugListPage from './pages/bugs/BugListPage';
-import ReportBugPage from './pages/bugs/ReportBugPage';
-import BugDetailPage from './pages/bugs/BugDetailPage';
-import KanbanPage from './pages/kanban/KanbanPage';
-import MyTasksPage from './pages/tasks/MyTasksPage';
-import ReportsPage from './pages/reports/ReportsPage';
-import UserManagementPage from './pages/users/UserManagementPage';
-import UserStoriesPage from './pages/stories/UserStoriesPage';
-import RolesPermissionsPage from './pages/roles/RolesPermissionsPage';
+import React, { useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import socket from "./socket";
+import DashboardLayout from "./components/layout/DashboardLayout";
+import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
+import DashboardPage from "./pages/dashboard/DashboardPage";
+import BugListPage from "./pages/bugs/BugListPage";
+import ReportBugPage from "./pages/bugs/ReportBugPage";
+import BugDetailPage from "./pages/bugs/BugDetailPage";
+import KanbanPage from "./pages/kanban/KanbanPage";
+import MyTasksPage from "./pages/tasks/MyTasksPage";
+import ReportsPage from "./pages/reports/ReportsPage";
+import UserManagementPage from "./pages/users/UserManagementPage";
+import UserStoriesPage from "./pages/stories/UserStoriesPage";
+import RolesPermissionsPage from "./pages/roles/RolesPermissionsPage";
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -35,11 +36,31 @@ function RoleRedirect() {
 
 function AdminRoute({ children }) {
   const { user } = useAuth();
-  if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
+  if (user?.role !== "admin") return <Navigate to="/dashboard" replace />;
   return children;
 }
 
 function App() {
+  useEffect(() => {
+    socket.connect();
+    socket.on("bugCreated", (payload) => {
+      console.info("Real-time bug created:", payload);
+    });
+    socket.on("bugUpdated", (payload) => {
+      console.info("Real-time bug updated:", payload);
+    });
+    socket.on("commentAdded", (payload) => {
+      console.info("Real-time comment added:", payload);
+    });
+
+    return () => {
+      socket.off("bugCreated");
+      socket.off("bugUpdated");
+      socket.off("commentAdded");
+      socket.disconnect();
+    };
+  }, []);
+
   return (
     <AuthProvider>
       <Routes>
@@ -76,7 +97,10 @@ function App() {
                       </AdminRoute>
                     }
                   />
-                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                  <Route
+                    path="*"
+                    element={<Navigate to="/dashboard" replace />}
+                  />
                 </Routes>
               </DashboardLayout>
             </ProtectedRoute>

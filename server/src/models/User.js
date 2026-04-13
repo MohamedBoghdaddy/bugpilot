@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["CUSTOMER", "TESTER", "DEVELOPER", "ADMIN"],
       default: "CUSTOMER",
+      set: (v) => (v ? v.toUpperCase() : v),
     },
     avatar: { type: String, default: null },
   },

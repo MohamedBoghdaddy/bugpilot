@@ -20,7 +20,7 @@ export const register = async (req, res, next) => {
       email,
       password: hashedPassword,
       name,
-      role: role || "CUSTOMER",
+      role: role ? role.toUpperCase() : "CUSTOMER",
     });
 
     await Activity.create({

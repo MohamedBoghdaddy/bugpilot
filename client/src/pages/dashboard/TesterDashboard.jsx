@@ -61,7 +61,7 @@ const TesterDashboard = () => {
         const bugList = bugsRes.data?.bugs || bugsRes.data || [];
         setBugs(bugList);
         const userList = usersRes.data?.users || usersRes.data || [];
-        setDevelopers(userList.filter((u) => u.role === 'developer'));
+        setDevelopers(userList.filter((u) => u.role === 'DEVELOPER'));
       } catch (err) {
         setError('Failed to load triage data. Please try again.');
         console.error(err);

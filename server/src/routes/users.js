@@ -13,7 +13,7 @@ import {
 const router = express.Router();
 router.use(authenticate);
 
-router.get("/", authorize("ADMIN"), listUsers);
+router.get("/", listUsers);
 router.get("/:id", getUser);
 router.patch(
   "/:id/role",

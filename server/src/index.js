@@ -5,13 +5,12 @@ import dotenv from "dotenv";
 import path from "path";
 import http from "http";
 import { Server } from "socket.io";
+import connectDB from "./config/db.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
-process.env.DATABASE_URL =
-  process.env.DATABASE_URL || process.env.MONGO_URL || process.env.MONGODB_URL;
 
 import authRoutes from "./routes/auth.js";
 import bugRoutes from "./routes/bugs.js";
@@ -105,8 +104,10 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+connectDB().then(() => {
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 });
 
 export { app, server, io };

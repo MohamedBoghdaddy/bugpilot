@@ -1,7 +1,15 @@
 import axios from "axios";
 
+const localDevApiUrl =
+  typeof window !== "undefined" && window.location.hostname === "localhost"
+    ? "http://localhost:5000/api"
+    : null;
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "https://bugpilot.onrender.com/api",
+  baseURL:
+    process.env.REACT_APP_API_URL ||
+    localDevApiUrl ||
+    "https://bugpilot.onrender.com/api",
   headers: {
     "Content-Type": "application/json",
   },

@@ -1,10 +1,16 @@
 import { io } from "socket.io-client";
 
+const localDevSocketUrl =
+  typeof window !== "undefined" && window.location.hostname === "localhost"
+    ? "http://localhost:5000"
+    : null;
+
 const baseUrl =
   process.env.REACT_APP_SOCKET_URL ||
   (process.env.REACT_APP_API_URL
     ? process.env.REACT_APP_API_URL.replace(/\/api\/?$/, "")
     : null) ||
+  localDevSocketUrl ||
   "https://bugpilot.onrender.com";
 
 const socket = io(baseUrl, {

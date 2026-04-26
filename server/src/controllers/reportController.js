@@ -31,7 +31,7 @@ export const velocity = async (req, res, next) => {
 
     const resolved = await Activity.find({
       action: "STATUS_CHANGED",
-      details: { $regex: "FIXED" },
+      details: { $regex: /-> FIXED$/ },
       createdAt: { $gte: startDate },
     })
       .select("createdAt")

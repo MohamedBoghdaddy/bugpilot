@@ -36,7 +36,7 @@ function RoleRedirect() {
 
 function AdminRoute({ children }) {
   const { user } = useAuth();
-  if (user?.role !== "admin") return <Navigate to="/dashboard" replace />;
+  if (user?.role !== "ADMIN") return <Navigate to="/dashboard" replace />;
   return children;
 }
 

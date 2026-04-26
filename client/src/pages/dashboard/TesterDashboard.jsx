@@ -26,21 +26,23 @@ const StatCard = ({ icon: Icon, label, value, color, bgColor }) => (
 );
 
 const priorityColors = {
-  critical: 'bg-red-100 text-red-700',
-  high: 'bg-orange-100 text-orange-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  low: 'bg-green-100 text-green-700',
+  CRITICAL: 'bg-red-100 text-red-700',
+  HIGH: 'bg-orange-100 text-orange-700',
+  MEDIUM: 'bg-yellow-100 text-yellow-700',
+  LOW: 'bg-green-100 text-green-700',
 };
 
 const statusColors = {
-  open: 'bg-blue-100 text-blue-700',
-  'in-progress': 'bg-purple-100 text-purple-700',
-  resolved: 'bg-green-100 text-green-700',
-  closed: 'bg-gray-100 text-gray-700',
+  OPEN: 'bg-blue-100 text-blue-700',
+  ASSIGNED: 'bg-yellow-100 text-yellow-700',
+  IN_PROGRESS: 'bg-purple-100 text-purple-700',
+  FIXED: 'bg-green-100 text-green-700',
+  CLOSED: 'bg-gray-100 text-gray-700',
+  VERIFIED: 'bg-teal-100 text-teal-700',
 };
 
-const priorityOptions = ['critical', 'high', 'medium', 'low'];
-const statusOptions = ['open', 'in-progress', 'resolved', 'closed'];
+const priorityOptions = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
+const statusOptions = ['OPEN', 'ASSIGNED', 'IN_PROGRESS', 'FIXED', 'CLOSED', 'VERIFIED'];
 
 const TesterDashboard = () => {
   const { user } = useAuth();
@@ -109,15 +111,15 @@ const TesterDashboard = () => {
   };
 
   const stats = {
-    newBugs: bugs.filter((b) => b.status === 'open').length,
-    verified: bugs.filter((b) => b.status === 'closed').length,
-    pendingVerification: bugs.filter((b) => b.status === 'resolved').length,
+    newBugs: bugs.filter((b) => b.status === 'OPEN').length,
+    verified: bugs.filter((b) => b.status === 'VERIFIED' || b.status === 'CLOSED').length,
+    pendingVerification: bugs.filter((b) => b.status === 'FIXED').length,
   };
 
   const triageBugs = bugs
-    .filter((b) => b.status === 'open' || b.status === 'in-progress')
+    .filter((b) => b.status === 'OPEN' || b.status === 'IN_PROGRESS' || b.status === 'ASSIGNED')
     .sort((a, b) => {
-      const order = { critical: 0, high: 1, medium: 2, low: 3 };
+      const order = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
       return (order[a.priority] ?? 2) - (order[b.priority] ?? 2);
     });
 

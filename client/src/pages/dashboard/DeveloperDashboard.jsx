@@ -30,17 +30,19 @@ const StatCard = ({ icon: Icon, label, value, subtitle, color, bgColor }) => (
 );
 
 const priorityColors = {
-  critical: 'bg-red-100 text-red-700',
-  high: 'bg-orange-100 text-orange-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  low: 'bg-green-100 text-green-700',
+  CRITICAL: 'bg-red-100 text-red-700',
+  HIGH: 'bg-orange-100 text-orange-700',
+  MEDIUM: 'bg-yellow-100 text-yellow-700',
+  LOW: 'bg-green-100 text-green-700',
 };
 
 const statusColors = {
-  open: 'bg-blue-100 text-blue-700',
-  'in-progress': 'bg-purple-100 text-purple-700',
-  resolved: 'bg-green-100 text-green-700',
-  closed: 'bg-gray-100 text-gray-700',
+  OPEN: 'bg-blue-100 text-blue-700',
+  ASSIGNED: 'bg-yellow-100 text-yellow-700',
+  IN_PROGRESS: 'bg-purple-100 text-purple-700',
+  FIXED: 'bg-green-100 text-green-700',
+  CLOSED: 'bg-gray-100 text-gray-700',
+  VERIFIED: 'bg-teal-100 text-teal-700',
 };
 
 const DeveloperDashboard = () => {
@@ -65,24 +67,24 @@ const DeveloperDashboard = () => {
     fetchBugs();
   }, []);
 
-  const inProgressBug = bugs.find((b) => b.status === 'in-progress');
+  const inProgressBug = bugs.find((b) => b.status === 'IN_PROGRESS');
 
   const stats = {
     assigned: bugs.length,
-    inProgress: bugs.filter((b) => b.status === 'in-progress').length,
+    inProgress: bugs.filter((b) => b.status === 'IN_PROGRESS').length,
     resolvedThisWeek: bugs.filter((b) => {
-      if (b.status !== 'resolved' && b.status !== 'closed') return false;
+      if (b.status !== 'FIXED' && b.status !== 'CLOSED' && b.status !== 'VERIFIED') return false;
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
       return b.updatedAt && new Date(b.updatedAt) >= weekAgo;
     }).length,
-    totalFixed: bugs.filter((b) => b.status === 'resolved' || b.status === 'closed').length,
+    totalFixed: bugs.filter((b) => b.status === 'FIXED' || b.status === 'CLOSED' || b.status === 'VERIFIED').length,
   };
 
   const sprintStats = {
     velocity: stats.totalFixed,
     avgResolutionTime: bugs.length > 0 ? '2.4 days' : '-',
-    criticalOpen: bugs.filter((b) => b.priority === 'critical' && b.status !== 'resolved' && b.status !== 'closed').length,
+    criticalOpen: bugs.filter((b) => b.priority === 'CRITICAL' && b.status !== 'FIXED' && b.status !== 'CLOSED' && b.status !== 'VERIFIED').length,
   };
 
   const recentActivity = bugs

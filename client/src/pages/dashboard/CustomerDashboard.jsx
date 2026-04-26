@@ -26,17 +26,19 @@ const StatCard = ({ icon: Icon, label, value, color, bgColor }) => (
 );
 
 const priorityColors = {
-  critical: 'bg-red-100 text-red-700',
-  high: 'bg-orange-100 text-orange-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  low: 'bg-green-100 text-green-700',
+  CRITICAL: 'bg-red-100 text-red-700',
+  HIGH: 'bg-orange-100 text-orange-700',
+  MEDIUM: 'bg-yellow-100 text-yellow-700',
+  LOW: 'bg-green-100 text-green-700',
 };
 
 const statusColors = {
-  open: 'bg-blue-100 text-blue-700',
-  'in-progress': 'bg-purple-100 text-purple-700',
-  resolved: 'bg-green-100 text-green-700',
-  closed: 'bg-gray-100 text-gray-700',
+  OPEN: 'bg-blue-100 text-blue-700',
+  ASSIGNED: 'bg-yellow-100 text-yellow-700',
+  IN_PROGRESS: 'bg-purple-100 text-purple-700',
+  FIXED: 'bg-green-100 text-green-700',
+  CLOSED: 'bg-gray-100 text-gray-700',
+  VERIFIED: 'bg-teal-100 text-teal-700',
 };
 
 const CustomerDashboard = () => {
@@ -63,9 +65,9 @@ const CustomerDashboard = () => {
 
   const stats = {
     total: bugs.length,
-    active: bugs.filter((b) => b.status === 'open' || b.status === 'in-progress').length,
-    inProgress: bugs.filter((b) => b.status === 'in-progress').length,
-    fixed: bugs.filter((b) => b.status === 'resolved' || b.status === 'closed').length,
+    active: bugs.filter((b) => b.status === 'OPEN' || b.status === 'IN_PROGRESS' || b.status === 'ASSIGNED').length,
+    inProgress: bugs.filter((b) => b.status === 'IN_PROGRESS').length,
+    fixed: bugs.filter((b) => b.status === 'FIXED' || b.status === 'CLOSED' || b.status === 'VERIFIED').length,
   };
 
   const recentActivity = bugs

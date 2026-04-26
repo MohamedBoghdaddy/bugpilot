@@ -1,6 +1,8 @@
 import { fileURLToPath } from "url";
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
 import dotenv from "dotenv";
 import path from "path";
 import http from "http";
@@ -24,6 +26,16 @@ import permissionRoutes from "./routes/permissions.js";
 import aiRoutes from "./routes/ai.js";
 
 const app = express();
+
+app.use(helmet());
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, please try again later." },
+});
 
 const allowedOrigins = [
   process.env.FRONTEND_URL,
@@ -53,7 +65,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 // Routes
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/bugs", bugRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/users", userRoutes);

@@ -1,84 +1,108 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   HiPlus,
   HiBookOpen,
   HiPencil,
   HiTrash,
-  HiLink,
+  HiExclamationCircle,
 } from 'react-icons/hi';
-
-const sampleStories = [
-  {
-    id: 1,
-    title: 'User authentication and authorization',
-    description: 'As a user, I want to securely log in and have role-based access so that I can only see features relevant to my role.',
-    status: 'completed',
-    priority: 'high',
-    points: 8,
-    bugs: 3,
-    sprint: 'Sprint 4',
-  },
-  {
-    id: 2,
-    title: 'Bug reporting with file attachments',
-    description: 'As a customer, I want to attach screenshots when reporting bugs so that developers can better understand the issue.',
-    status: 'in-progress',
-    priority: 'medium',
-    points: 5,
-    bugs: 1,
-    sprint: 'Sprint 5',
-  },
-  {
-    id: 3,
-    title: 'Kanban board drag and drop',
-    description: 'As a developer, I want to drag bugs between columns on a Kanban board so that I can quickly update bug status.',
-    status: 'in-progress',
-    priority: 'high',
-    points: 13,
-    bugs: 2,
-    sprint: 'Sprint 5',
-  },
-  {
-    id: 4,
-    title: 'Email notification system',
-    description: 'As a user, I want to receive email notifications when bugs are assigned to me or updated.',
-    status: 'planned',
-    priority: 'medium',
-    points: 8,
-    bugs: 0,
-    sprint: 'Sprint 6',
-  },
-  {
-    id: 5,
-    title: 'Advanced search and filtering',
-    description: 'As a user, I want to search and filter bugs by multiple criteria to quickly find specific issues.',
-    status: 'planned',
-    priority: 'low',
-    points: 5,
-    bugs: 0,
-    sprint: 'Sprint 6',
-  },
-];
+import { storiesAPI } from '../../api/endpoints';
 
 const statusConfig = {
-  planned: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Planned' },
-  'in-progress': { bg: 'bg-purple-100', text: 'text-purple-700', label: 'In Progress' },
-  completed: { bg: 'bg-green-100', text: 'text-green-700', label: 'Completed' },
+  TODO: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Planned' },
+  IN_PROGRESS: { bg: 'bg-purple-100', text: 'text-purple-700', label: 'In Progress' },
+  DONE: { bg: 'bg-green-100', text: 'text-green-700', label: 'Completed' },
 };
 
 const priorityDot = {
-  high: 'bg-orange-500',
-  medium: 'bg-yellow-500',
-  low: 'bg-green-500',
+  HIGH: 'bg-orange-500',
+  MEDIUM: 'bg-yellow-500',
+  LOW: 'bg-green-500',
+  CRITICAL: 'bg-red-500',
 };
 
+const EMPTY_FORM = { title: '', description: '', priority: 'MEDIUM', storyPoints: '' };
+
 const UserStoriesPage = () => {
-  const [stories] = useState(sampleStories);
+  const [stories, setStories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+
+  useEffect(() => {
+    const fetchStories = async () => {
+      try {
+        setLoading(true);
+        const res = await storiesAPI.getAll();
+        setStories(res.data?.stories || res.data || []);
+      } catch {
+        setError('Failed to load stories. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStories();
+  }, []);
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    if (!form.title.trim()) return;
+    setSubmitting(true);
+    setFormError(null);
+    try {
+      const res = await storiesAPI.create({
+        title: form.title,
+        description: form.description,
+        priority: form.priority,
+        storyPoints: form.storyPoints ? Number(form.storyPoints) : 0,
+      });
+      const newStory = res.data?.story || res.data;
+      setStories((prev) => [newStory, ...prev]);
+      setForm(EMPTY_FORM);
+      setShowForm(false);
+    } catch (err) {
+      setFormError(err.response?.data?.error || 'Failed to create story.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this story?')) return;
+    setDeletingId(id);
+    try {
+      await storiesAPI.delete(id);
+      setStories((prev) => prev.filter((s) => (s._id || s.id) !== id));
+    } catch {
+      // ignore
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+        <HiExclamationCircle className="w-10 h-10 text-red-400 mx-auto mb-2" />
+        <p className="text-red-700 font-medium">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">User Stories</h1>
@@ -93,99 +117,117 @@ const UserStoriesPage = () => {
         </button>
       </div>
 
-      {/* New story form */}
       {showForm && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+        <form onSubmit={handleCreate} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
           <h3 className="text-sm font-semibold text-gray-900">Create User Story</h3>
+          {formError && <p className="text-sm text-red-600">{formError}</p>}
           <input
             type="text"
             placeholder="Story title"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            required
             className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
           <textarea
             placeholder="As a [user type], I want [goal] so that [reason]..."
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
             rows={3}
             className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
           />
-          <div className="grid grid-cols-3 gap-3">
-            <select className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white">
-              <option>Priority</option>
-              <option>High</option>
-              <option>Medium</option>
-              <option>Low</option>
-            </select>
-            <select className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white">
-              <option>Sprint</option>
-              <option>Sprint 5</option>
-              <option>Sprint 6</option>
-              <option>Backlog</option>
+          <div className="grid grid-cols-2 gap-3">
+            <select
+              value={form.priority}
+              onChange={(e) => setForm({ ...form, priority: e.target.value })}
+              className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white"
+            >
+              <option value="CRITICAL">Critical</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
             </select>
             <input
               type="number"
               placeholder="Story points"
+              value={form.storyPoints}
+              onChange={(e) => setForm({ ...form, storyPoints: e.target.value })}
+              min={0}
               className="text-sm border border-gray-200 rounded-lg px-3 py-2"
             />
           </div>
           <div className="flex justify-end gap-2">
             <button
-              onClick={() => setShowForm(false)}
+              type="button"
+              onClick={() => { setShowForm(false); setForm(EMPTY_FORM); setFormError(null); }}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
             >
               Cancel
             </button>
-            <button className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700">
-              Create Story
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:bg-primary-400"
+            >
+              {submitting ? 'Creating...' : 'Create Story'}
             </button>
           </div>
-        </div>
+        </form>
       )}
 
-      {/* Stories list */}
       <div className="space-y-3">
-        {stories.map((story) => {
-          const sConfig = statusConfig[story.status] || statusConfig.planned;
-          return (
-            <div key={story.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-3 flex-1 min-w-0">
-                  <div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <HiBookOpen className="w-5 h-5 text-primary-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-sm font-semibold text-gray-900">{story.title}</h3>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${sConfig.bg} ${sConfig.text}`}>
-                        {sConfig.label}
-                      </span>
+        {stories.length === 0 ? (
+          <div className="bg-white rounded-xl border border-gray-200 p-10 text-center text-gray-500">
+            <HiBookOpen className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+            <p className="font-medium">No user stories yet</p>
+            <p className="text-sm mt-1">Create your first story to get started.</p>
+          </div>
+        ) : (
+          stories.map((story) => {
+            const storyId = story._id || story.id;
+            const sConfig = statusConfig[story.status] || statusConfig.TODO;
+            return (
+              <div key={storyId} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <HiBookOpen className="w-5 h-5 text-primary-600" />
                     </div>
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{story.description}</p>
-                    <div className="flex items-center gap-4 mt-3">
-                      <div className="flex items-center gap-1.5">
-                        <span className={`w-2 h-2 rounded-full ${priorityDot[story.priority]}`} />
-                        <span className="text-xs text-gray-500 capitalize">{story.priority}</span>
-                      </div>
-                      <span className="text-xs text-gray-500">{story.points} pts</span>
-                      <span className="text-xs text-gray-500">{story.sprint}</span>
-                      {story.bugs > 0 && (
-                        <span className="text-xs text-gray-500 flex items-center gap-1">
-                          <HiLink className="w-3 h-3" /> {story.bugs} bugs
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-sm font-semibold text-gray-900">{story.title}</h3>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${sConfig.bg} ${sConfig.text}`}>
+                          {sConfig.label}
                         </span>
+                      </div>
+                      {story.description && (
+                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">{story.description}</p>
                       )}
+                      <div className="flex items-center gap-4 mt-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`w-2 h-2 rounded-full ${priorityDot[story.priority] || priorityDot.MEDIUM}`} />
+                          <span className="text-xs text-gray-500 capitalize">{story.priority?.toLowerCase()}</span>
+                        </div>
+                        {story.storyPoints > 0 && (
+                          <span className="text-xs text-gray-500">{story.storyPoints} pts</span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <button className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600">
-                    <HiPencil className="w-4 h-4" />
-                  </button>
-                  <button className="p-1.5 rounded-lg hover:bg-danger-50 text-gray-400 hover:text-danger-600">
-                    <HiTrash className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      onClick={() => handleDelete(storyId)}
+                      disabled={deletingId === storyId}
+                      className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600 disabled:opacity-40"
+                    >
+                      <HiTrash className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </div>
   );

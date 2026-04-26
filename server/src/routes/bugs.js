@@ -2,6 +2,7 @@ import express from "express";
 import { body, param, query } from "express-validator";
 import authenticate from "../middleware/auth.js";
 import authorize from "../middleware/rbac.js";
+import validate from "../middleware/validate.js";
 import {
   listBugs,
   getMyBugs,
@@ -27,6 +28,7 @@ router.get(
     query("page").optional().isInt({ min: 1 }),
     query("limit").optional().isInt({ min: 1, max: 100 }),
   ],
+  validate,
   listBugs
 );
 router.get("/my", getMyBugs);
@@ -40,22 +42,26 @@ router.post(
     body("priority").optional().isIn(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
     body("severity").optional().isIn(["MINOR", "MAJOR", "CRITICAL", "BLOCKER"]),
   ],
+  validate,
   createBug
 );
 router.patch("/:id", updateBug);
 router.patch(
   "/:id/assign",
   [body("assigneeId").notEmpty().withMessage("Assignee ID is required")],
+  validate,
   assignBug
 );
 router.patch(
   "/:id/status",
   [body("status").isIn(["OPEN", "ASSIGNED", "IN_PROGRESS", "FIXED", "CLOSED", "VERIFIED"]).withMessage("Valid status is required")],
+  validate,
   updateBugStatus
 );
 router.patch(
   "/:id/priority",
   [body("priority").isIn(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).withMessage("Valid priority is required")],
+  validate,
   updateBugPriority
 );
 router.delete("/:id", authorize("ADMIN"), deleteBug);

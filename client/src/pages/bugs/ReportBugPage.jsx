@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HiArrowLeft, HiUpload, HiX } from 'react-icons/hi';
+import { HiArrowLeft } from 'react-icons/hi';
+import { bugsAPI } from '../../api/endpoints';
 
 const ReportBugPage = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     title: '',
     description: '',
-    priority: 'medium',
-    category: '',
+    priority: 'MEDIUM',
     stepsToReproduce: '',
     expectedBehavior: '',
     actualBehavior: '',
     environment: '',
   });
-  const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -24,15 +24,24 @@ const ReportBugPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    setError(null);
+    try {
+      const payload = {
+        title: form.title,
+        description: form.description,
+        priority: form.priority,
+        stepsToReproduce: [form.stepsToReproduce, form.expectedBehavior, form.actualBehavior, form.environment]
+          .filter(Boolean)
+          .join('\n\n') || undefined,
+      };
+      const res = await bugsAPI.create(payload);
+      const bugId = res.data?.bug?._id || res.data?.bug?.id;
+      navigate(bugId ? `/bugs/${bugId}` : '/bugs');
+    } catch (err) {
+      setError(err.response?.data?.errors?.[0]?.msg || err.response?.data?.error || 'Failed to submit bug report.');
+    } finally {
       setLoading(false);
-      navigate('/bugs');
-    }, 1000);
-  };
-
-  const removeAttachment = (index) => {
-    setAttachments(attachments.filter((_, i) => i !== index));
+    }
   };
 
   return (
@@ -50,6 +59,12 @@ const ReportBugPage = () => {
           <p className="text-sm text-gray-500 mt-1">Fill in the details to help us squash this bug</p>
         </div>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
@@ -81,39 +96,20 @@ const ReportBugPage = () => {
           />
         </div>
 
-        {/* Priority + Category row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Priority *</label>
-            <select
-              name="priority"
-              value={form.priority}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white"
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
-            <select
-              name="category"
-              value={form.category}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white"
-            >
-              <option value="">Select category</option>
-              <option value="ui">UI / Visual</option>
-              <option value="functionality">Functionality</option>
-              <option value="performance">Performance</option>
-              <option value="security">Security</option>
-              <option value="api">API</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
+        {/* Priority */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Priority *</label>
+          <select
+            name="priority"
+            value={form.priority}
+            onChange={handleChange}
+            className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white"
+          >
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High</option>
+            <option value="CRITICAL">Critical</option>
+          </select>
         </div>
 
         {/* Steps to Reproduce */}
@@ -166,30 +162,6 @@ const ReportBugPage = () => {
             placeholder="e.g., Chrome 120, macOS Sonoma, iPhone 15"
             className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
-        </div>
-
-        {/* Attachments */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Attachments</label>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors cursor-pointer">
-            <HiUpload className="w-8 h-8 text-gray-400 mx-auto" />
-            <p className="text-sm text-gray-600 mt-2">
-              <span className="font-medium text-primary-600">Click to upload</span> or drag and drop
-            </p>
-            <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 10MB</p>
-          </div>
-          {attachments.length > 0 && (
-            <div className="mt-3 space-y-2">
-              {attachments.map((file, idx) => (
-                <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-700">{file.name}</span>
-                  <button onClick={() => removeAttachment(idx)} className="text-gray-400 hover:text-danger-500">
-                    <HiX className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Actions */}

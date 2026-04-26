@@ -1,93 +1,82 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { HiPlus, HiOutlineTicket, HiDotsVertical } from 'react-icons/hi';
+import { bugsAPI } from '../../api/endpoints';
+import { HiPlus, HiOutlineTicket } from 'react-icons/hi';
 
-const initialColumns = {
-  open: {
-    title: 'Open',
-    color: 'bg-blue-500',
-    items: [
-      { id: 1, title: 'Login page crashes on mobile Safari', priority: 'critical', assignee: 'AK' },
-      { id: 3, title: 'Email notifications delayed by 30min', priority: 'medium', assignee: 'MJ' },
-      { id: 6, title: 'Search results pagination broken', priority: 'medium', assignee: null },
-      { id: 7, title: 'API rate limiting not working', priority: 'critical', assignee: 'SC' },
-    ],
-  },
-  'in-progress': {
-    title: 'In Progress',
-    color: 'bg-purple-500',
-    items: [
-      { id: 2, title: 'Dashboard chart not rendering data', priority: 'high', assignee: 'SC' },
-      { id: 4, title: 'User avatar upload fails for PNG', priority: 'high', assignee: 'ED' },
-    ],
-  },
-  resolved: {
-    title: 'Resolved',
-    color: 'bg-green-500',
-    items: [
-      { id: 5, title: 'Dark mode toggle not persisting', priority: 'low', assignee: 'AK' },
-      { id: 8, title: 'File export produces corrupted CSV', priority: 'high', assignee: 'MJ' },
-    ],
-  },
-  closed: {
-    title: 'Closed',
-    color: 'bg-gray-400',
-    items: [
-      { id: 9, title: 'Incorrect timezone in date picker', priority: 'medium', assignee: 'SC' },
-    ],
-  },
-};
+const COLUMNS = [
+  { key: 'OPEN', title: 'Open', color: 'bg-blue-500' },
+  { key: 'ASSIGNED', title: 'Assigned', color: 'bg-yellow-500' },
+  { key: 'IN_PROGRESS', title: 'In Progress', color: 'bg-purple-500' },
+  { key: 'FIXED', title: 'Fixed', color: 'bg-green-500' },
+  { key: 'VERIFIED', title: 'Verified', color: 'bg-teal-500' },
+  { key: 'CLOSED', title: 'Closed', color: 'bg-gray-400' },
+];
 
 const priorityDot = {
-  critical: 'bg-red-500',
-  high: 'bg-orange-500',
-  medium: 'bg-yellow-500',
-  low: 'bg-green-500',
+  CRITICAL: 'bg-red-500',
+  HIGH: 'bg-orange-500',
+  MEDIUM: 'bg-yellow-500',
+  LOW: 'bg-green-500',
 };
 
-const KanbanCard = ({ item }) => (
-  <Link
-    to={`/bugs/${item.id}`}
-    className="block bg-white rounded-lg border border-gray-200 p-3.5 hover:shadow-md hover:border-gray-300 transition-all cursor-pointer group"
-  >
-    <div className="flex items-start justify-between gap-2">
-      <p className="text-sm font-medium text-gray-900 group-hover:text-primary-600 leading-snug">
-        {item.title}
+const KanbanCard = ({ bug }) => {
+  const bugId = bug._id || bug.id;
+  return (
+    <Link
+      to={`/bugs/${bugId}`}
+      className="block bg-white rounded-lg border border-gray-200 p-3.5 hover:shadow-md hover:border-gray-300 transition-all cursor-pointer group"
+    >
+      <p className="text-sm font-medium text-gray-900 group-hover:text-primary-600 leading-snug line-clamp-2">
+        {bug.title}
       </p>
-      <button
-        onClick={(e) => e.preventDefault()}
-        className="p-0.5 rounded hover:bg-gray-100 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-      >
-        <HiDotsVertical className="w-4 h-4" />
-      </button>
-    </div>
-    <div className="flex items-center justify-between mt-3">
-      <div className="flex items-center gap-2">
-        <span className={`w-2 h-2 rounded-full ${priorityDot[item.priority]}`} />
-        <span className="text-xs text-gray-500 capitalize">{item.priority}</span>
+      <div className="flex items-center justify-between mt-3">
+        <div className="flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full ${priorityDot[bug.priority] || priorityDot.MEDIUM}`} />
+          <span className="text-xs text-gray-500 capitalize">{bug.priority?.toLowerCase()}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {bug.assignee && (
+            <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-xs font-medium text-primary-700">
+              {bug.assignee.name?.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+            </div>
+          )}
+        </div>
       </div>
-      <div className="flex items-center gap-1.5">
-        <span className="text-xs text-gray-400 font-mono">BUG-{String(item.id).padStart(4, '0')}</span>
-        {item.assignee && (
-          <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-xs font-medium text-primary-700">
-            {item.assignee}
-          </div>
-        )}
-      </div>
-    </div>
-  </Link>
-);
+    </Link>
+  );
+};
 
 const KanbanPage = () => {
-  const [columns] = useState(initialColumns);
+  const [bugs, setBugs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchBugs = async () => {
+      try {
+        setLoading(true);
+        const res = await bugsAPI.getAll({ limit: 100 });
+        setBugs(res.data?.bugs || []);
+      } catch {
+        setError('Failed to load bugs.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBugs();
+  }, []);
+
+  const bugsByStatus = COLUMNS.reduce((acc, col) => {
+    acc[col.key] = bugs.filter((b) => b.status === col.key);
+    return acc;
+  }, {});
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Kanban Board</h1>
-          <p className="text-sm text-gray-500 mt-1">Drag and drop bugs to update their status</p>
+          <p className="text-sm text-gray-500 mt-1">Visual overview of all bug statuses</p>
         </div>
         <Link
           to="/bugs/new"
@@ -98,39 +87,41 @@ const KanbanPage = () => {
         </Link>
       </div>
 
-      {/* Board */}
-      <div className="flex gap-4 overflow-x-auto pb-4">
-        {Object.entries(columns).map(([key, column]) => (
-          <div key={key} className="flex-shrink-0 w-72">
-            {/* Column header */}
-            <div className="flex items-center justify-between mb-3 px-1">
-              <div className="flex items-center gap-2">
-                <div className={`w-2.5 h-2.5 rounded-full ${column.color}`} />
-                <h3 className="text-sm font-semibold text-gray-900">{column.title}</h3>
-                <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
-                  {column.items.length}
-                </span>
-              </div>
-              <button className="p-1 rounded hover:bg-gray-100 text-gray-400">
-                <HiPlus className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Column body */}
-            <div className="bg-gray-50 rounded-xl p-2 min-h-[400px] space-y-2">
-              {column.items.map((item) => (
-                <KanbanCard key={item.id} item={item} />
-              ))}
-              {column.items.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                  <HiOutlineTicket className="w-8 h-8 mb-2" />
-                  <p className="text-xs">No bugs here</p>
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600" />
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center text-red-700 text-sm">{error}</div>
+      ) : (
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {COLUMNS.map((col) => {
+            const items = bugsByStatus[col.key] || [];
+            return (
+              <div key={col.key} className="flex-shrink-0 w-72">
+                <div className="flex items-center justify-between mb-3 px-1">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2.5 h-2.5 rounded-full ${col.color}`} />
+                    <h3 className="text-sm font-semibold text-gray-900">{col.title}</h3>
+                    <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">{items.length}</span>
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+                <div className="bg-gray-50 rounded-xl p-2 min-h-[400px] space-y-2">
+                  {items.map((bug) => (
+                    <KanbanCard key={bug._id || bug.id} bug={bug} />
+                  ))}
+                  {items.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                      <HiOutlineTicket className="w-8 h-8 mb-2" />
+                      <p className="text-xs">No bugs here</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

@@ -2,6 +2,7 @@ import express from "express";
 import { body } from "express-validator";
 import authenticate from "../middleware/auth.js";
 import authorize from "../middleware/rbac.js";
+import validate from "../middleware/validate.js";
 import {
   listUsers,
   getUser,
@@ -19,6 +20,7 @@ router.patch(
   "/:id/role",
   authorize("ADMIN"),
   [body("role").isIn(["CUSTOMER", "TESTER", "DEVELOPER", "ADMIN"]).withMessage("Valid role is required")],
+  validate,
   updateUserRole
 );
 router.patch(
@@ -28,6 +30,7 @@ router.patch(
     body("email").optional().isEmail().normalizeEmail(),
     body("password").optional().isLength({ min: 6 }),
   ],
+  validate,
   updateUser
 );
 router.delete("/:id", authorize("ADMIN"), deleteUser);

@@ -22,4 +22,9 @@ const activitySchema = new mongoose.Schema(
   }
 );
 
+activitySchema.index({ bug: 1, createdAt: -1 });
+activitySchema.index({ user: 1, createdAt: -1 });
+activitySchema.index({ action: 1 });
+activitySchema.index({ createdAt: -1 });
+
 export default mongoose.model("Activity", activitySchema, "activities");

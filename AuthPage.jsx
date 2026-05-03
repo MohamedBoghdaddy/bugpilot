@@ -7,7 +7,7 @@ const AuthPage = () => {
     name: '',
     email: '',
     password: '',
-    role: 'Customer', // Default role based on SRS [cite: 53]
+    role: 'Customer', 
   });
 
   const handleChange = (e) => {

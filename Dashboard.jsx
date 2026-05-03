@@ -2,8 +2,7 @@ import React from 'react';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const userRole = "Tester"; // جرب تغيرها لـ Customer أو Developer عشان تشوف التغيير
-
+  const userRole = "Tester"; 
   return (
     <div className="dashboard-container">
       <aside className="sidebar">

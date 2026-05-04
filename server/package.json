@@ -2,10 +2,10 @@
   "name": "bugtrackr-server",
   "version": "1.0.0",
   "description": "Backend API for BugTrackr - SaaS Bug Tracking System",
-  "main": "src/index.js",
+  "main": "src/server.js",
   "scripts": {
-    "dev": "nodemon src/index.js",
-    "start": "node src/index.js",
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "seed": "node src/seed.js"

@@ -42,22 +42,25 @@ function AdminRoute({ children }) {
 
 function App() {
   useEffect(() => {
-    socket.connect();
-    socket.on("bugCreated", (payload) => {
-      console.info("Real-time bug created:", payload);
-    });
-    socket.on("bugUpdated", (payload) => {
-      console.info("Real-time bug updated:", payload);
-    });
-    socket.on("commentAdded", (payload) => {
-      console.info("Real-time comment added:", payload);
-    });
+    // Guard: only connect if not already connected (prevents React StrictMode duplicate connections)
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    const onBugCreated = () => {};   // placeholder — components subscribe to specific events
+    const onBugUpdated = () => {};
+    const onCommentAdded = () => {};
+
+    socket.on("bugCreated", onBugCreated);
+    socket.on("bugUpdated", onBugUpdated);
+    socket.on("commentAdded", onCommentAdded);
 
     return () => {
-      socket.off("bugCreated");
-      socket.off("bugUpdated");
-      socket.off("commentAdded");
-      socket.disconnect();
+      // Remove listeners only — do NOT disconnect here so StrictMode re-mount doesn't create
+      // a second connection. The socket stays alive for the session lifetime.
+      socket.off("bugCreated", onBugCreated);
+      socket.off("bugUpdated", onBugUpdated);
+      socket.off("commentAdded", onCommentAdded);
     };
   }, []);
 

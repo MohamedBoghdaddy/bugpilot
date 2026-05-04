@@ -97,3 +97,28 @@ uploads/
 # OS
 .DS_Store
 Thumbs.db
+
+# IDE / Editor
+.vscode/
+.idea/
+*.iml
+
+# SQLite / databases
+*.db
+*.sqlite
+*.sqlite3
+instance/
+python-service/instance/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+
+# Dev artifacts
+server/convert_cjs_to_esm.py

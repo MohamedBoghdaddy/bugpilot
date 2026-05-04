@@ -13,28 +13,37 @@ import {
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_TIME_MS = 15 * 60 * 1000;
 
+// Roles that public self-registration is allowed to request.
+// ADMIN, DEVELOPER, and TESTER must be granted by an existing ADMIN via /api/users/:id/role.
+const PUBLIC_ALLOWED_ROLES = new Set(["CUSTOMER"]);
+
 export const register = async (req, res, next) => {
   try {
     const { email, password, name, role } = req.body;
 
     const existing = await User.findOne({ email: email.toLowerCase().trim() });
     if (existing) {
-      return res.status(409).json({ error: "Email already registered." });
+      return res.status(409).json({ success: false, message: "Email already registered." });
     }
+
+    // Silently downgrade any privileged role to CUSTOMER — never let public users self-assign power.
+    const requestedRole = role?.toUpperCase();
+    const safeRole = PUBLIC_ALLOWED_ROLES.has(requestedRole) ? requestedRole : "CUSTOMER";
 
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = await User.create({
       email: email.toLowerCase().trim(),
       password: hashedPassword,
       name: name.trim(),
-      role: role ? role.toUpperCase() : "CUSTOMER",
+      role: safeRole,
     });
 
-    await Activity.create({
+    // Fire-and-forget activity log — don't let a logging failure kill registration
+    Activity.create({
       action: "USER_REGISTERED",
       details: `User ${name} registered`,
       user: user.id,
-    });
+    }).catch((logErr) => logger.warn("Activity log failed after register", { error: logErr.message }));
 
     logger.info("User registered", { userId: user.id, email: user.email, role: user.role });
 
@@ -50,7 +59,7 @@ export const register = async (req, res, next) => {
     res.cookie("refreshToken", refreshToken, REFRESH_COOKIE_OPTIONS);
 
     const { password: _pw, ...userData } = user.toJSON();
-    res.status(201).json({ token: accessToken, user: userData });
+    res.status(201).json({ success: true, message: "User registered successfully.", token: accessToken, user: userData });
   } catch (err) {
     next(err);
   }

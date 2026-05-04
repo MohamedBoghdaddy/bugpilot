@@ -114,14 +114,17 @@ app.use("/api/attachments", attachmentRoutes);
 // --- Health check ---
 app.get("/api/health", async (req, res) => {
   const { connection } = (await import("mongoose")).default;
-  res.json({
+  const body = {
     success: true,
     message: "BugPilot API is running",
     timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
+    uptime: Math.round(process.uptime()),
     db: connection.readyState === 1 ? "connected" : "disconnected",
-    memory: process.memoryUsage(),
-  });
+  };
+  if (process.env.NODE_ENV !== "production") {
+    body.memory = process.memoryUsage();
+  }
+  res.json(body);
 });
 
 // --- 404 ---

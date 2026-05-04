@@ -44,6 +44,9 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password, role) => {
     const response = await authAPI.register({ name, email, password, role });
     const { token: newToken, user: newUser } = response.data;
+    if (!newToken || !newUser) {
+      throw new Error("Registration response is missing token or user.");
+    }
     setToken(newToken);
     setUser(newUser);
     localStorage.setItem('token', newToken);

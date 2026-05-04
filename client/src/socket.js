@@ -20,11 +20,15 @@ const socket = io(baseUrl, {
 });
 
 socket.on("connect", () => {
-  console.info("Socket connected:", socket.id);
+  if (process.env.NODE_ENV !== "production") {
+    console.info("Socket connected:", socket.id);
+  }
 });
 
 socket.on("connect_error", (error) => {
-  console.warn("Socket connection error:", error?.message || error);
+  if (process.env.NODE_ENV !== "production") {
+    console.warn("Socket connection error:", error?.message || error);
+  }
 });
 
 export default socket;

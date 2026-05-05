@@ -20,7 +20,7 @@ async function main() {
   // Create users (one per role)
   const admin = await prisma.user.create({
     data: {
-      email: "admin@bugtrackr.com",
+      email: "admin@bugpilot.example.com",
       password: hashedPassword,
       name: "Alice Admin",
       role: "ADMIN",
@@ -29,7 +29,7 @@ async function main() {
 
   const developer = await prisma.user.create({
     data: {
-      email: "dev@bugtrackr.com",
+      email: "dev@bugpilot.example.com",
       password: hashedPassword,
       name: "Dave Developer",
       role: "DEVELOPER",
@@ -38,7 +38,7 @@ async function main() {
 
   const tester = await prisma.user.create({
     data: {
-      email: "tester@bugtrackr.com",
+      email: "tester@bugpilot.example.com",
       password: hashedPassword,
       name: "Tina Tester",
       role: "TESTER",
@@ -47,7 +47,7 @@ async function main() {
 
   const customer = await prisma.user.create({
     data: {
-      email: "customer@bugtrackr.com",
+      email: "customer@bugpilot.example.com",
       password: hashedPassword,
       name: "Charlie Customer",
       role: "CUSTOMER",
@@ -318,10 +318,10 @@ async function main() {
   console.log("Activity logs created");
   console.log("Seed completed successfully!");
   console.log("\nTest credentials (password: password123):");
-  console.log("  Admin:     admin@bugtrackr.com");
-  console.log("  Developer: dev@bugtrackr.com");
-  console.log("  Tester:    tester@bugtrackr.com");
-  console.log("  Customer:  customer@bugtrackr.com");
+  console.log("  Admin:     admin@bugpilot.example.com");
+  console.log("  Developer: dev@bugpilot.example.com");
+  console.log("  Tester:    tester@bugpilot.example.com");
+  console.log("  Customer:  customer@bugpilot.example.com");
 }
 
 main()

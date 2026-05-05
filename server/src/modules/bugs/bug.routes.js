@@ -45,15 +45,17 @@ router.post(
   validate,
   createBug
 );
-router.patch("/:id", updateBug);
+router.patch("/:id", authorize("ADMIN", "TESTER", "DEVELOPER"), updateBug);
 router.patch(
   "/:id/assign",
+  authorize("ADMIN", "TESTER", "DEVELOPER"),
   [body("assigneeId").notEmpty().withMessage("Assignee ID is required")],
   validate,
   assignBug
 );
 router.patch(
   "/:id/status",
+  authorize("ADMIN", "TESTER", "DEVELOPER"),
   [
     body("status")
       .isIn(["OPEN", "ASSIGNED", "IN_PROGRESS", "FIXED", "CLOSED", "VERIFIED"])
@@ -64,6 +66,7 @@ router.patch(
 );
 router.patch(
   "/:id/priority",
+  authorize("ADMIN", "TESTER", "DEVELOPER"),
   [
     body("priority")
       .isIn(["LOW", "MEDIUM", "HIGH", "CRITICAL"])

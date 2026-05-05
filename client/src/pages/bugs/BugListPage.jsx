@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { bugsAPI } from '../../api/endpoints';
+import { useAuth } from '../../context/AuthContext';
 import {
   HiPlus,
   HiSearch,
@@ -27,6 +28,7 @@ const statusConfig = {
 };
 
 const BugListPage = () => {
+  const { user } = useAuth();
   const [bugs, setBugs] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -45,7 +47,10 @@ const BugListPage = () => {
       if (filterStatus) params.status = filterStatus;
       if (filterPriority) params.priority = filterPriority;
       if (search) params.search = search;
-      const res = await bugsAPI.getAll(params);
+
+      // Use getMy() for CUSTOMER to ensure they only see their own bugs
+      const apiCall = user?.role === 'CUSTOMER' ? bugsAPI.getMy : bugsAPI.getAll;
+      const res = await apiCall(params);
       setBugs(res.data?.bugs || []);
       setTotal(res.data?.pagination?.total || 0);
       setTotalPages(res.data?.pagination?.pages || 1);
@@ -54,7 +59,7 @@ const BugListPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, filterStatus, filterPriority, search]);
+  }, [page, filterStatus, filterPriority, search, user?.role]);
 
   useEffect(() => {
     const debounce = setTimeout(fetchBugs, search ? 300 : 0);
@@ -150,7 +155,9 @@ const BugListPage = () => {
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">Bug</th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">Priority</th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">Status</th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">Assignee</th>
+                  {user?.role !== 'CUSTOMER' && (
+                    <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">Assignee</th>
+                  )}
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">Created</th>
                 </tr>
               </thead>
@@ -181,18 +188,20 @@ const BugListPage = () => {
                           {bug.status?.replace('_', ' ')}
                         </span>
                       </td>
-                      <td className="py-3 px-4">
-                        {bug.assignee ? (
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-xs font-medium text-primary-700">
-                              {bug.assignee.name?.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                      {user?.role !== 'CUSTOMER' && (
+                        <td className="py-3 px-4">
+                          {bug.assignee ? (
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-xs font-medium text-primary-700">
+                                {bug.assignee.name?.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                              </div>
+                              <span className="text-sm text-gray-700">{bug.assignee.name}</span>
                             </div>
-                            <span className="text-sm text-gray-700">{bug.assignee.name}</span>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-400 italic">Unassigned</span>
-                        )}
-                      </td>
+                          ) : (
+                            <span className="text-sm text-gray-400 italic">Unassigned</span>
+                          )}
+                        </td>
+                      )}
                       <td className="py-3 px-4 text-sm text-gray-500">
                         {bug.createdAt ? new Date(bug.createdAt).toLocaleDateString() : '-'}
                       </td>

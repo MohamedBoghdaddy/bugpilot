@@ -1,10 +1,14 @@
 import express from "express";
 import { body } from "express-validator";
 import authenticate from "../../middlewares/authMiddleware.js";
+import authorize from "../../middlewares/rbac.js";
 import { getMyTasks, listTasks, getTask, createTask, updateTask, deleteTask } from "./task.controller.js";
 
 const router = express.Router();
 router.use(authenticate);
+
+// Restrict task access to internal roles only
+router.use(authorize("ADMIN", "TESTER", "DEVELOPER"));
 
 router.get("/my", getMyTasks);
 router.get("/", listTasks);

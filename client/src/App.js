@@ -36,9 +36,26 @@ function RoleRedirect() {
   return <Navigate to="/dashboard" replace />;
 }
 
-function AdminRoute({ children }) {
+function RoleProtectedRoute({ children, allowedRoles }) {
   const { user } = useAuth();
-  if (user?.role !== "ADMIN") return <Navigate to="/dashboard" replace />;
+  if (!user) return <Navigate to="/login" replace />;
+  const userRole = user.role?.toUpperCase();
+  if (!allowedRoles.includes(userRole)) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+          <p className="text-gray-600 mb-4">You don't have permission to access this page.</p>
+          <button
+            onClick={() => window.history.back()}
+            className="text-primary-600 hover:text-primary-700 font-medium"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
   return children;
 }
 
@@ -82,24 +99,38 @@ function App() {
                   <Route path="/bugs" element={<BugListPage />} />
                   <Route path="/bugs/new" element={<ReportBugPage />} />
                   <Route path="/bugs/:id" element={<BugDetailPage />} />
-                  <Route path="/kanban" element={<KanbanPage />} />
-                  <Route path="/tasks" element={<MyTasksPage />} />
+                  <Route
+                    path="/kanban"
+                    element={
+                      <RoleProtectedRoute allowedRoles={["ADMIN", "TESTER", "DEVELOPER"]}>
+                        <KanbanPage />
+                      </RoleProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tasks"
+                    element={
+                      <RoleProtectedRoute allowedRoles={["ADMIN", "TESTER", "DEVELOPER"]}>
+                        <MyTasksPage />
+                      </RoleProtectedRoute>
+                    }
+                  />
                   <Route path="/reports" element={<ReportsPage />} />
                   <Route
                     path="/users"
                     element={
-                      <AdminRoute>
+                      <RoleProtectedRoute allowedRoles={["ADMIN"]}>
                         <UserManagementPage />
-                      </AdminRoute>
+                      </RoleProtectedRoute>
                     }
                   />
                   <Route path="/stories" element={<UserStoriesPage />} />
                   <Route
                     path="/roles"
                     element={
-                      <AdminRoute>
+                      <RoleProtectedRoute allowedRoles={["ADMIN"]}>
                         <RolesPermissionsPage />
-                      </AdminRoute>
+                      </RoleProtectedRoute>
                     }
                   />
                   <Route path="/profile" element={<ProfilePage />} />

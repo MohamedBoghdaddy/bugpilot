@@ -20,6 +20,12 @@ export const listBugs = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     const filter = { ...BASE_FILTER };
+
+    // Role-based filtering: CUSTOMER can only see their own bugs
+    if (req.user.role === "CUSTOMER") {
+      filter.reporter = req.user.id;
+    }
+
     if (status) filter.status = status;
     if (priority) filter.priority = priority;
     if (severity) filter.severity = severity;

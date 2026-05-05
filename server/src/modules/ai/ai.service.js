@@ -62,10 +62,76 @@ export async function classifyBugPriority(description) {
   const prompt = `Classify the following bug description into one of these priorities: LOW, MEDIUM, HIGH, CRITICAL. Return only the single priority word.\n\nBug description:\n${description}`;
   const result = await callGemini(prompt);
   const priority = result
-    ? result.toUpperCase().trim().match(/LOW|MEDIUM|HIGH|CRITICAL/)
+    ? result
+        .toUpperCase()
+        .trim()
+        .match(/LOW|MEDIUM|HIGH|CRITICAL/)
     : fallback;
 
-  return { priority: priority || fallback, source: priority ? "gemini" : "heuristic" };
+  return {
+    priority: priority || fallback,
+    source: priority ? "gemini" : "heuristic",
+  };
+}
+
+function parseStoryOutput(output) {
+  if (!output) return null;
+
+  const jsonMatch = output.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    try {
+      return JSON.parse(jsonMatch[0]);
+    } catch {
+      // fall through to line parsing
+    }
+  }
+
+  const lines = output
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const story = {};
+
+  for (const line of lines) {
+    const [key, ...rest] = line.split(/[:\-]/);
+    const value = rest.join(":").trim();
+    if (/^title$/i.test(key)) story.title = value;
+    if (/^description$/i.test(key)) story.description = value;
+    if (/^priority$/i.test(key)) story.priority = value.toUpperCase();
+    if (/^storypoints$/i.test(key) || /^story points$/i.test(key))
+      story.storyPoints = Number(value);
+  }
+
+  return story;
+}
+
+export async function generateStory(title, description) {
+  const fallback = {
+    title: title || "New User Story",
+    description: description || "As a user, I want to ... so that ...",
+    priority: "MEDIUM",
+    storyPoints: 3,
+    source: "heuristic",
+  };
+  if (!geminiKey) return { story: fallback, source: "heuristic" };
+
+  const prompt = `You are a product owner. Create a user story from the context below. Return only valid JSON with keys: title, description, priority, storyPoints. Priority must be one of LOW, MEDIUM, HIGH, CRITICAL. storyPoints must be an integer.\n\nContext title: ${title || "N/A"}\n\nContext description: ${description || "N/A"}`;
+  const result = await callGemini(prompt, 0.4);
+  const parsed = parseStoryOutput(result) || {};
+
+  const story = {
+    title: parsed.title || fallback.title,
+    description: parsed.description || fallback.description,
+    priority:
+      (parsed.priority || "MEDIUM")
+        .toUpperCase()
+        .match(/LOW|MEDIUM|HIGH|CRITICAL/)?.[0] || "MEDIUM",
+    storyPoints: Number.isInteger(Number(parsed.storyPoints))
+      ? Number(parsed.storyPoints)
+      : 3,
+  };
+
+  return { story, source: result ? "gemini" : "heuristic" };
 }
 
 export async function recommendAssignee(title, description) {
@@ -75,7 +141,10 @@ export async function recommendAssignee(title, description) {
   const prompt = `Based on the title and description below, recommend the best type of team member to assign this bug to. Keep the answer short.\n\nTitle: ${title}\n\nDescription: ${description}`;
   const result = await callGemini(prompt);
 
-  return { assignee: result || fallback, source: result ? "gemini" : "heuristic" };
+  return {
+    assignee: result || fallback,
+    source: result ? "gemini" : "heuristic",
+  };
 }
 
 export async function summarizeBug(title, description) {
@@ -85,5 +154,8 @@ export async function summarizeBug(title, description) {
   const prompt = `Write a short bug summary from the title and description below. Keep it under 50 words.\n\nTitle: ${title}\n\nDescription: ${description}`;
   const result = await callGemini(prompt);
 
-  return { summary: result || fallback, source: result ? "gemini" : "heuristic" };
+  return {
+    summary: result || fallback,
+    source: result ? "gemini" : "heuristic",
+  };
 }

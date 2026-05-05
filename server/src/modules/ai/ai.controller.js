@@ -1,4 +1,9 @@
-import { classifyBugPriority, recommendAssignee, summarizeBug } from "./ai.service.js";
+import {
+  classifyBugPriority,
+  recommendAssignee,
+  summarizeBug,
+  generateStory,
+} from "./ai.service.js";
 
 export const classifyPriority = async (req, res, next) => {
   try {
@@ -11,7 +16,10 @@ export const classifyPriority = async (req, res, next) => {
 
 export const getRecommendedAssignee = async (req, res, next) => {
   try {
-    const result = await recommendAssignee(req.body.title, req.body.description);
+    const result = await recommendAssignee(
+      req.body.title,
+      req.body.description,
+    );
     res.json(result);
   } catch (err) {
     next(err);
@@ -21,6 +29,15 @@ export const getRecommendedAssignee = async (req, res, next) => {
 export const getBugSummary = async (req, res, next) => {
   try {
     const result = await summarizeBug(req.body.title, req.body.description);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const generateStory = async (req, res, next) => {
+  try {
+    const result = await generateStory(req.body.title, req.body.description);
     res.json(result);
   } catch (err) {
     next(err);

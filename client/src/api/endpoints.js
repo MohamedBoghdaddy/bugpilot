@@ -68,4 +68,5 @@ export const aiAPI = {
   summarizeBug: (data) => api.post("/ai/summarize", data),
   recommendAssignee: (data) => api.post("/ai/recommend-assignee", data),
   classifyPriority: (data) => api.post("/ai/priority", data),
+  generateStory: (data) => api.post("/ai/story", data),
 };

@@ -38,11 +38,18 @@ export const listBugs = async (req, res, next) => {
     }
 
     const [bugs, total] = await Promise.all([
-      Bug.find(filter).populate(populateOptions).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Bug.find(filter)
+        .populate(populateOptions)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
       Bug.countDocuments(filter),
     ]);
 
-    res.json({ bugs, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
+    res.json({
+      bugs,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    });
   } catch (err) {
     next(err);
   }
@@ -56,11 +63,18 @@ export const getMyBugs = async (req, res, next) => {
 
     const filter = { ...BASE_FILTER, reporter: req.user.id };
     const [bugs, total] = await Promise.all([
-      Bug.find(filter).populate(populateOptions).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Bug.find(filter)
+        .populate(populateOptions)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
       Bug.countDocuments(filter),
     ]);
 
-    res.json({ bugs, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
+    res.json({
+      bugs,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    });
   } catch (err) {
     next(err);
   }
@@ -74,11 +88,18 @@ export const getAssignedBugs = async (req, res, next) => {
 
     const filter = { ...BASE_FILTER, assignee: req.user.id };
     const [bugs, total] = await Promise.all([
-      Bug.find(filter).populate(populateOptions).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Bug.find(filter)
+        .populate(populateOptions)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
       Bug.countDocuments(filter),
     ]);
 
-    res.json({ bugs, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
+    res.json({
+      bugs,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    });
   } catch (err) {
     next(err);
   }
@@ -86,7 +107,10 @@ export const getAssignedBugs = async (req, res, next) => {
 
 export const getBug = async (req, res, next) => {
   try {
-    const bug = await Bug.findOne({ _id: req.params.id, deletedAt: null }).populate(populateOptions);
+    const bug = await Bug.findOne({
+      _id: req.params.id,
+      deletedAt: null,
+    }).populate(populateOptions);
     if (!bug) return res.status(404).json({ error: "Bug not found." });
 
     const [comments, attachments, activities] = await Promise.all([
@@ -110,7 +134,15 @@ export const getBug = async (req, res, next) => {
 
 export const createBug = async (req, res, next) => {
   try {
-    const { title, description, stepsToReproduce, priority, severity, assigneeId, tags } = req.body;
+    const {
+      title,
+      description,
+      stepsToReproduce,
+      priority,
+      severity,
+      assigneeId,
+      tags,
+    } = req.body;
 
     const bug = await Bug.create({
       title,
@@ -146,20 +178,32 @@ export const updateBug = async (req, res, next) => {
     if (!existing) return res.status(404).json({ error: "Bug not found." });
 
     if (req.user.role === "CUSTOMER" && existing.reporter !== req.user.id) {
-      return res.status(403).json({ error: "You can only edit bugs you reported." });
+      return res
+        .status(403)
+        .json({ error: "You can only edit bugs you reported." });
     }
 
-    const { title, description, stepsToReproduce, status, priority, severity, assigneeId, tags } =
-      req.body;
+    const {
+      title,
+      description,
+      stepsToReproduce,
+      status,
+      priority,
+      severity,
+      assigneeId,
+      tags,
+    } = req.body;
     const data = {};
     if (title !== undefined) data.title = title;
     if (description !== undefined) data.description = description;
-    if (stepsToReproduce !== undefined) data.stepsToReproduce = stepsToReproduce;
+    if (stepsToReproduce !== undefined)
+      data.stepsToReproduce = stepsToReproduce;
     if (status !== undefined) data.status = status;
     if (priority !== undefined) data.priority = priority;
     if (severity !== undefined) data.severity = severity;
     if (assigneeId !== undefined) data.assignee = assigneeId || null;
-    if (tags !== undefined) data.tags = Array.isArray(tags) ? tags.slice(0, 10) : [];
+    if (tags !== undefined)
+      data.tags = Array.isArray(tags) ? tags.slice(0, 10) : [];
 
     const bug = await Bug.findByIdAndUpdate(req.params.id, data, {
       new: true,
@@ -194,7 +238,8 @@ export const assignBug = async (req, res, next) => {
     if (!existing) return res.status(404).json({ error: "Bug not found." });
 
     const assignee = await User.findById(req.body.assigneeId);
-    if (!assignee) return res.status(404).json({ error: "Assignee not found." });
+    if (!assignee)
+      return res.status(404).json({ error: "Assignee not found." });
 
     const bug = await Bug.findByIdAndUpdate(
       req.params.id,
@@ -202,7 +247,7 @@ export const assignBug = async (req, res, next) => {
         assignee: req.body.assigneeId,
         status: existing.status === "OPEN" ? "ASSIGNED" : existing.status,
       },
-      { new: true }
+      { new: true },
     ).populate(populateOptions);
 
     await Activity.create({
@@ -227,7 +272,7 @@ export const updateBugStatus = async (req, res, next) => {
     const bug = await Bug.findByIdAndUpdate(
       req.params.id,
       { status: req.body.status },
-      { new: true }
+      { new: true },
     ).populate(populateOptions);
 
     await Activity.create({
@@ -252,7 +297,7 @@ export const updateBugPriority = async (req, res, next) => {
     const bug = await Bug.findByIdAndUpdate(
       req.params.id,
       { priority: req.body.priority },
-      { new: true }
+      { new: true },
     ).populate(populateOptions);
 
     await Activity.create({

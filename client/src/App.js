@@ -44,8 +44,12 @@ function RoleProtectedRoute({ children, allowedRoles }) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-          <p className="text-gray-600 mb-4">You don't have permission to access this page.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Access Denied
+          </h1>
+          <p className="text-gray-600 mb-4">
+            You don't have permission to access this page.
+          </p>
           <button
             onClick={() => window.history.back()}
             className="text-primary-600 hover:text-primary-700 font-medium"
@@ -66,7 +70,7 @@ function App() {
       socket.connect();
     }
 
-    const onBugCreated = () => {};   // placeholder — components subscribe to specific events
+    const onBugCreated = () => {}; // placeholder — components subscribe to specific events
     const onBugUpdated = () => {};
     const onCommentAdded = () => {};
 
@@ -102,7 +106,9 @@ function App() {
                   <Route
                     path="/kanban"
                     element={
-                      <RoleProtectedRoute allowedRoles={["ADMIN", "TESTER", "DEVELOPER"]}>
+                      <RoleProtectedRoute
+                        allowedRoles={["ADMIN", "TESTER", "DEVELOPER"]}
+                      >
                         <KanbanPage />
                       </RoleProtectedRoute>
                     }
@@ -110,7 +116,9 @@ function App() {
                   <Route
                     path="/tasks"
                     element={
-                      <RoleProtectedRoute allowedRoles={["ADMIN", "TESTER", "DEVELOPER"]}>
+                      <RoleProtectedRoute
+                        allowedRoles={["ADMIN", "TESTER", "DEVELOPER"]}
+                      >
                         <MyTasksPage />
                       </RoleProtectedRoute>
                     }

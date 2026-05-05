@@ -22,14 +22,18 @@ router.use(authenticate);
 router.get(
   "/",
   [
-    query("status").optional().isIn(["OPEN", "ASSIGNED", "IN_PROGRESS", "FIXED", "CLOSED", "VERIFIED"]),
+    query("status")
+      .optional()
+      .isIn(["OPEN", "ASSIGNED", "IN_PROGRESS", "FIXED", "CLOSED", "VERIFIED"]),
     query("priority").optional().isIn(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
-    query("severity").optional().isIn(["MINOR", "MAJOR", "CRITICAL", "BLOCKER"]),
+    query("severity")
+      .optional()
+      .isIn(["MINOR", "MAJOR", "CRITICAL", "BLOCKER"]),
     query("page").optional().isInt({ min: 1 }),
     query("limit").optional().isInt({ min: 1, max: 100 }),
   ],
   validate,
-  listBugs
+  listBugs,
 );
 router.get("/my", getMyBugs);
 router.get("/assigned", getAssignedBugs);
@@ -38,12 +42,15 @@ router.post(
   "/",
   [
     body("title").trim().notEmpty().withMessage("Title is required"),
-    body("description").trim().notEmpty().withMessage("Description is required"),
+    body("description")
+      .trim()
+      .notEmpty()
+      .withMessage("Description is required"),
     body("priority").optional().isIn(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
     body("severity").optional().isIn(["MINOR", "MAJOR", "CRITICAL", "BLOCKER"]),
   ],
   validate,
-  createBug
+  createBug,
 );
 router.patch("/:id", authorize("ADMIN", "TESTER", "DEVELOPER"), updateBug);
 router.patch(
@@ -51,7 +58,7 @@ router.patch(
   authorize("ADMIN", "TESTER", "DEVELOPER"),
   [body("assigneeId").notEmpty().withMessage("Assignee ID is required")],
   validate,
-  assignBug
+  assignBug,
 );
 router.patch(
   "/:id/status",
@@ -62,7 +69,7 @@ router.patch(
       .withMessage("Valid status is required"),
   ],
   validate,
-  updateBugStatus
+  updateBugStatus,
 );
 router.patch(
   "/:id/priority",
@@ -73,7 +80,7 @@ router.patch(
       .withMessage("Valid priority is required"),
   ],
   validate,
-  updateBugPriority
+  updateBugPriority,
 );
 router.delete("/:id", authorize("ADMIN"), deleteBug);
 

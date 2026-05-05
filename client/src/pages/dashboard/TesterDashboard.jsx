@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { bugsAPI, usersAPI } from '../../api/endpoints';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { bugsAPI, usersAPI } from "../../api/endpoints";
 import {
   HiExclamationTriangle,
   HiCheckBadge,
@@ -9,7 +9,7 @@ import {
   HiArrowRight,
   HiExclamationCircle,
   HiChevronDown,
-} from 'react-icons/hi2';
+} from "react-icons/hi2";
 
 const StatCard = ({ icon: Icon, label, value, color, bgColor }) => (
   <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow">
@@ -18,7 +18,9 @@ const StatCard = ({ icon: Icon, label, value, color, bgColor }) => (
         <p className="text-sm font-medium text-gray-500">{label}</p>
         <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
       </div>
-      <div className={`w-12 h-12 rounded-xl ${bgColor} flex items-center justify-center`}>
+      <div
+        className={`w-12 h-12 rounded-xl ${bgColor} flex items-center justify-center`}
+      >
         <Icon className={`w-6 h-6 ${color}`} />
       </div>
     </div>
@@ -26,23 +28,30 @@ const StatCard = ({ icon: Icon, label, value, color, bgColor }) => (
 );
 
 const priorityColors = {
-  CRITICAL: 'bg-red-100 text-red-700',
-  HIGH: 'bg-orange-100 text-orange-700',
-  MEDIUM: 'bg-yellow-100 text-yellow-700',
-  LOW: 'bg-green-100 text-green-700',
+  CRITICAL: "bg-red-100 text-red-700",
+  HIGH: "bg-orange-100 text-orange-700",
+  MEDIUM: "bg-yellow-100 text-yellow-700",
+  LOW: "bg-green-100 text-green-700",
 };
 
 const statusColors = {
-  OPEN: 'bg-blue-100 text-blue-700',
-  ASSIGNED: 'bg-yellow-100 text-yellow-700',
-  IN_PROGRESS: 'bg-purple-100 text-purple-700',
-  FIXED: 'bg-green-100 text-green-700',
-  CLOSED: 'bg-gray-100 text-gray-700',
-  VERIFIED: 'bg-teal-100 text-teal-700',
+  OPEN: "bg-blue-100 text-blue-700",
+  ASSIGNED: "bg-yellow-100 text-yellow-700",
+  IN_PROGRESS: "bg-purple-100 text-purple-700",
+  FIXED: "bg-green-100 text-green-700",
+  CLOSED: "bg-gray-100 text-gray-700",
+  VERIFIED: "bg-teal-100 text-teal-700",
 };
 
-const priorityOptions = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
-const statusOptions = ['OPEN', 'ASSIGNED', 'IN_PROGRESS', 'FIXED', 'CLOSED', 'VERIFIED'];
+const priorityOptions = ["CRITICAL", "HIGH", "MEDIUM", "LOW"];
+const statusOptions = [
+  "OPEN",
+  "ASSIGNED",
+  "IN_PROGRESS",
+  "FIXED",
+  "CLOSED",
+  "VERIFIED",
+];
 
 const TesterDashboard = () => {
   const { user } = useAuth();
@@ -56,16 +65,26 @@ const TesterDashboard = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [bugsRes, usersRes] = await Promise.all([
+        const [bugsResult, usersResult] = await Promise.allSettled([
           bugsAPI.getAll(),
-          usersAPI.getAll(),
+          usersAPI.getAssignable(),
         ]);
-        const bugList = bugsRes.data?.bugs || bugsRes.data || [];
+
+        if (bugsResult.status === "rejected") {
+          throw bugsResult.reason;
+        }
+
+        const bugList =
+          bugsResult.value.data?.bugs || bugsResult.value.data || [];
         setBugs(bugList);
-        const userList = usersRes.data?.users || usersRes.data || [];
-        setDevelopers(userList.filter((u) => u.role === 'DEVELOPER'));
+
+        const assignableUsers =
+          usersResult.status === "fulfilled"
+            ? usersResult.value.data?.users || []
+            : [];
+        setDevelopers(assignableUsers);
       } catch (err) {
-        setError('Failed to load triage data. Please try again.');
+        setError("Failed to load triage data. Please try again.");
         console.error(err);
       } finally {
         setLoading(false);
@@ -78,11 +97,13 @@ const TesterDashboard = () => {
     try {
       await bugsAPI.assign(bugId, userId);
       setBugs((prev) =>
-        prev.map((b) => (b._id === bugId || b.id === bugId ? { ...b, assignedTo: userId } : b))
+        prev.map((b) =>
+          b._id === bugId || b.id === bugId ? { ...b, assignedTo: userId } : b,
+        ),
       );
       setActiveDropdown(null);
     } catch (err) {
-      console.error('Failed to assign bug:', err);
+      console.error("Failed to assign bug:", err);
     }
   };
 
@@ -90,11 +111,13 @@ const TesterDashboard = () => {
     try {
       await bugsAPI.update(bugId, { priority });
       setBugs((prev) =>
-        prev.map((b) => (b._id === bugId || b.id === bugId ? { ...b, priority } : b))
+        prev.map((b) =>
+          b._id === bugId || b.id === bugId ? { ...b, priority } : b,
+        ),
       );
       setActiveDropdown(null);
     } catch (err) {
-      console.error('Failed to update priority:', err);
+      console.error("Failed to update priority:", err);
     }
   };
 
@@ -102,22 +125,31 @@ const TesterDashboard = () => {
     try {
       await bugsAPI.updateStatus(bugId, status);
       setBugs((prev) =>
-        prev.map((b) => (b._id === bugId || b.id === bugId ? { ...b, status } : b))
+        prev.map((b) =>
+          b._id === bugId || b.id === bugId ? { ...b, status } : b,
+        ),
       );
       setActiveDropdown(null);
     } catch (err) {
-      console.error('Failed to update status:', err);
+      console.error("Failed to update status:", err);
     }
   };
 
   const stats = {
-    newBugs: bugs.filter((b) => b.status === 'OPEN').length,
-    verified: bugs.filter((b) => b.status === 'VERIFIED' || b.status === 'CLOSED').length,
-    pendingVerification: bugs.filter((b) => b.status === 'FIXED').length,
+    newBugs: bugs.filter((b) => b.status === "OPEN").length,
+    verified: bugs.filter(
+      (b) => b.status === "VERIFIED" || b.status === "CLOSED",
+    ).length,
+    pendingVerification: bugs.filter((b) => b.status === "FIXED").length,
   };
 
   const triageBugs = bugs
-    .filter((b) => b.status === 'OPEN' || b.status === 'IN_PROGRESS' || b.status === 'ASSIGNED')
+    .filter(
+      (b) =>
+        b.status === "OPEN" ||
+        b.status === "IN_PROGRESS" ||
+        b.status === "ASSIGNED",
+    )
     .sort((a, b) => {
       const order = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
       return (order[a.priority] ?? 2) - (order[b.priority] ?? 2);
@@ -154,11 +186,10 @@ const TesterDashboard = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          Triage Dashboard
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900">Triage Dashboard</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Welcome back, {user?.name?.split(' ')[0] || 'Tester'}. Review, prioritize, and assign incoming bugs.
+          Welcome back, {user?.name?.split(" ")[0] || "Tester"}. Review,
+          prioritize, and assign incoming bugs.
         </p>
       </div>
 
@@ -190,7 +221,9 @@ const TesterDashboard = () => {
       {/* Triage Queue */}
       <div className="bg-white rounded-xl border border-gray-200">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Bug Triage Queue</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            Bug Triage Queue
+          </h2>
           <Link
             to="/bugs"
             className="text-sm font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1"
@@ -208,29 +241,47 @@ const TesterDashboard = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">Title</th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">Priority</th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">Status</th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">Actions</th>
+                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">
+                    Title
+                  </th>
+                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">
+                    Priority
+                  </th>
+                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">
+                    Status
+                  </th>
+                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {triageBugs.slice(0, 15).map((bug) => {
                   const bugId = bug._id || bug.id;
                   return (
-                    <tr key={bugId} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <tr
+                      key={bugId}
+                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                    >
                       <td className="py-3 px-4">
-                        <Link to={`/bugs/${bugId}`} className="text-sm font-medium text-gray-900 hover:text-primary-600">
+                        <Link
+                          to={`/bugs/${bugId}`}
+                          className="text-sm font-medium text-gray-900 hover:text-primary-600"
+                        >
                           {bug.title}
                         </Link>
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${priorityColors[bug.priority] || priorityColors.medium}`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${priorityColors[bug.priority] || priorityColors.medium}`}
+                        >
                           {bug.priority}
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[bug.status] || statusColors.open}`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[bug.status] || statusColors.open}`}
+                        >
                           {bug.status}
                         </span>
                       </td>
@@ -249,14 +300,18 @@ const TesterDashboard = () => {
                                 {developers.map((dev) => (
                                   <button
                                     key={dev._id || dev.id}
-                                    onClick={() => handleAssign(bugId, dev._id || dev.id)}
+                                    onClick={() =>
+                                      handleAssign(bugId, dev._id || dev.id)
+                                    }
                                     className="block w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100"
                                   >
                                     {dev.name}
                                   </button>
                                 ))}
                                 {developers.length === 0 && (
-                                  <span className="block px-3 py-1.5 text-xs text-gray-400">No developers found</span>
+                                  <span className="block px-3 py-1.5 text-xs text-gray-400">
+                                    No developers found
+                                  </span>
                                 )}
                               </div>
                             )}
@@ -265,7 +320,9 @@ const TesterDashboard = () => {
                           {/* Priority Dropdown */}
                           <div className="relative">
                             <button
-                              onClick={() => toggleDropdown(`priority-${bugId}`)}
+                              onClick={() =>
+                                toggleDropdown(`priority-${bugId}`)
+                              }
                               className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-orange-50 text-orange-700 rounded hover:bg-orange-100 transition-colors"
                             >
                               Priority <HiChevronDown className="w-3 h-3" />

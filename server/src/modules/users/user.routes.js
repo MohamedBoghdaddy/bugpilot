@@ -3,12 +3,24 @@ import { body } from "express-validator";
 import authenticate from "../../middlewares/authMiddleware.js";
 import authorize from "../../middlewares/rbac.js";
 import validate from "../../middlewares/validate.js";
-import { listUsers, getUser, updateUserRole, updateUser, deleteUser } from "./user.controller.js";
+import {
+  listUsers,
+  listAssignableUsers,
+  getUser,
+  updateUserRole,
+  updateUser,
+  deleteUser,
+} from "./user.controller.js";
 
 const router = express.Router();
 router.use(authenticate);
 
 router.get("/", authorize("ADMIN"), listUsers);
+router.get(
+  "/assignable",
+  authorize("ADMIN", "TESTER", "DEVELOPER"),
+  listAssignableUsers,
+);
 router.get("/:id", getUser);
 router.patch(
   "/:id/role",
@@ -19,17 +31,21 @@ router.patch(
       .withMessage("Valid role is required"),
   ],
   validate,
-  updateUserRole
+  updateUserRole,
 );
 router.patch(
   "/:id",
   [
-    body("name").optional().trim().notEmpty().withMessage("Name cannot be empty"),
+    body("name")
+      .optional()
+      .trim()
+      .notEmpty()
+      .withMessage("Name cannot be empty"),
     body("email").optional().isEmail().normalizeEmail(),
     body("password").optional().isLength({ min: 6 }),
   ],
   validate,
-  updateUser
+  updateUser,
 );
 router.delete("/:id", authorize("ADMIN"), deleteUser);
 

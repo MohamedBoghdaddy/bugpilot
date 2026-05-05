@@ -50,6 +50,28 @@ export const listUsers = async (req, res, next) => {
   }
 };
 
+export const listAssignableUsers = async (req, res, next) => {
+  try {
+    const users = await User.find({
+      role: { $in: ["TESTER", "DEVELOPER", "ADMIN"] },
+    })
+      .select("name email role")
+      .sort({ createdAt: -1 });
+
+    // Add id field for frontend compatibility
+    const usersWithId = users.map((user) => ({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    }));
+
+    res.json({ users: usersWithId });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id).select("-password");
@@ -88,7 +110,7 @@ export const updateUserRole = async (req, res, next) => {
     const updated = await User.findByIdAndUpdate(
       req.params.id,
       { role: req.body.role },
-      { new: true }
+      { new: true },
     ).select("-password");
 
     await Activity.create({
@@ -97,7 +119,11 @@ export const updateUserRole = async (req, res, next) => {
       user: req.user.id,
     });
 
-    res.json({ success: true, message: "User role updated successfully", user: updated });
+    res.json({
+      success: true,
+      message: "User role updated successfully",
+      user: updated,
+    });
   } catch (err) {
     next(err);
   }
@@ -106,7 +132,9 @@ export const updateUserRole = async (req, res, next) => {
 export const updateUser = async (req, res, next) => {
   try {
     if (req.user.id !== req.params.id && req.user.role !== "ADMIN") {
-      return res.status(403).json({ error: "You can only update your own profile." });
+      return res
+        .status(403)
+        .json({ error: "You can only update your own profile." });
     }
 
     const user = await User.findById(req.params.id);
@@ -116,11 +144,12 @@ export const updateUser = async (req, res, next) => {
     if (req.body.name) data.name = req.body.name;
     if (req.body.email) data.email = req.body.email;
     if (req.body.avatar !== undefined) data.avatar = req.body.avatar;
-    if (req.body.password) data.password = await bcrypt.hash(req.body.password, 12);
+    if (req.body.password)
+      data.password = await bcrypt.hash(req.body.password, 12);
 
-    const updated = await User.findByIdAndUpdate(req.params.id, data, { new: true }).select(
-      "-password"
-    );
+    const updated = await User.findByIdAndUpdate(req.params.id, data, {
+      new: true,
+    }).select("-password");
     res.json({ user: updated });
   } catch (err) {
     if (err.code === 11000) {
@@ -133,7 +162,9 @@ export const updateUser = async (req, res, next) => {
 export const deleteUser = async (req, res, next) => {
   try {
     if (req.user.id === req.params.id) {
-      return res.status(400).json({ error: "You cannot delete your own account." });
+      return res
+        .status(400)
+        .json({ error: "You cannot delete your own account." });
     }
 
     const user = await User.findById(req.params.id);

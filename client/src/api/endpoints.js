@@ -28,6 +28,7 @@ export const commentsAPI = {
 // Users
 export const usersAPI = {
   getAll: (params) => api.get("/users", { params }),
+  getAssignable: () => api.get("/users/assignable"),
   getById: (id) => api.get(`/users/${id}`),
   updateRole: (id, role) => api.patch(`/users/${id}/role`, { role }),
   update: (id, data) => api.patch(`/users/${id}`, data),

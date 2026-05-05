@@ -14,11 +14,14 @@ import {
   HiChevronLeft,
   HiChevronRight,
   HiX,
+  HiUser,
+  HiCog,
 } from 'react-icons/hi';
 
 const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
   const { user } = useAuth();
-  const role = user?.role || 'customer';
+  // Normalize to lowercase for comparison — DB stores roles in uppercase (ADMIN, TESTER, etc.)
+  const role = user?.role?.toLowerCase() || 'customer';
 
   const navItems = [
     { to: '/dashboard', icon: HiHome, label: 'Dashboard', roles: ['admin', 'developer', 'tester', 'customer'] },
@@ -30,6 +33,8 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
     { to: '/users', icon: HiUsers, label: 'Users', roles: ['admin'] },
     { to: '/roles', icon: HiShieldCheck, label: 'Roles', roles: ['admin'] },
     { to: '/reports', icon: HiChartBar, label: 'Reports', roles: ['admin'] },
+    { to: '/profile', icon: HiUser, label: 'Profile', roles: ['admin', 'developer', 'tester', 'customer'] },
+    { to: '/settings', icon: HiCog, label: 'Settings', roles: ['admin', 'developer', 'tester', 'customer'] },
   ];
 
   const filteredItems = navItems.filter((item) => item.roles.includes(role));
@@ -65,7 +70,7 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
               <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
                 <HiOutlineTicket className="w-5 h-5 text-white" />
               </div>
-              <span className="text-lg font-bold text-gray-900">BugTrackr</span>
+              <span className="text-lg font-bold text-gray-900">BugPilot</span>
             </div>
           )}
           {collapsed && (

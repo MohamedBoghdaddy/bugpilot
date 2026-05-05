@@ -8,7 +8,7 @@ import { listUsers, getUser, updateUserRole, updateUser, deleteUser } from "./us
 const router = express.Router();
 router.use(authenticate);
 
-router.get("/", listUsers);
+router.get("/", authorize("ADMIN"), listUsers);
 router.get("/:id", getUser);
 router.patch(
   "/:id/role",

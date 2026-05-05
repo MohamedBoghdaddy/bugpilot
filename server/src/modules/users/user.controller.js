@@ -32,6 +32,9 @@ export const listUsers = async (req, res, next) => {
       {
         $project: {
           password: 0,
+          refreshToken: 0,
+          passwordResetToken: 0,
+          passwordResetExpires: 0,
           reportedBugs: 0,
           assignedBugs: 0,
           __v: 0,
@@ -74,6 +77,14 @@ export const updateUserRole = async (req, res, next) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ error: "User not found." });
 
+    // Prevent demoting the last admin
+    if (user.role === "ADMIN" && req.body.role !== "ADMIN") {
+      const adminCount = await User.countDocuments({ role: "ADMIN" });
+      if (adminCount <= 1) {
+        return res.status(400).json({ error: "Cannot demote the last admin." });
+      }
+    }
+
     const updated = await User.findByIdAndUpdate(
       req.params.id,
       { role: req.body.role },
@@ -86,7 +97,7 @@ export const updateUserRole = async (req, res, next) => {
       user: req.user.id,
     });
 
-    res.json({ user: updated });
+    res.json({ success: true, message: "User role updated successfully", user: updated });
   } catch (err) {
     next(err);
   }

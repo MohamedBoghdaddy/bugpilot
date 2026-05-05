@@ -1,0 +1,20 @@
+HTTP/1.1 401 Unauthorized
+Date: Tue, 05 May 2026 01:28:39 GMT
+Content-Type: application/json; charset=utf-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+access-control-allow-credentials: true
+cf-cache-status: DYNAMIC
+content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: cross-origin
+etag: W/"22-BtSktRSrIoXYyi4xbBFv63E9Hwc"
+origin-agent-cluster: ?1
+ratelimit-limit: 20
+ratelimit-policy: 20;w=900
+ratelimit-remaining: 19
+ratelimit-reset: 900
+referrer-policy: no-referrer
+rndr-id: 44a2d724-64ec-4b68
+Server: cloudflare
+strict-transport-security: max-age=31536000; includeSubDomains

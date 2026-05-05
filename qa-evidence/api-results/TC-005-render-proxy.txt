@@ -1,0 +1,30 @@
+HTTP/1.1 200 OK
+Date: Tue, 05 May 2026 01:27:55 GMT
+Content-Type: application/json; charset=utf-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+access-control-allow-credentials: true
+cf-cache-status: DYNAMIC
+content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: cross-origin
+etag: W/"7a-lyzylCYXZu0Mc33xLqJVP4cZRKo"
+origin-agent-cluster: ?1
+ratelimit-limit: 300
+ratelimit-policy: 300;w=900
+ratelimit-remaining: 298
+ratelimit-reset: 900
+referrer-policy: no-referrer
+rndr-id: e301741e-fcd0-488b
+Server: cloudflare
+strict-transport-security: max-age=31536000; includeSubDomains
+vary: Origin, Accept-Encoding
+vary: Accept-Encoding
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-render-origin-server: Render
+x-xss-protection: 0
+CF-RAY: 9f6bf7295cce3574-PMO

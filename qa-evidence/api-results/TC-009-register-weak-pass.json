@@ -1,0 +1,1 @@
+{"success":false,"message":"Password must be at least 8 characters","errors":[{"field":"password","message":"Password must be at least 8 characters"},{"field":"password","message":"Password must contain at least one uppercase letter"},{"field":"password","message":"Password must contain at least one number"}]}

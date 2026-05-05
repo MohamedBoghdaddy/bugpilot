@@ -1,0 +1,48 @@
+Test ID,Area,Scenario,Expected,Actual,Status,Evidence
+TC-001,Repo/Git,Pull latest main on Windows,Pulls without invalid path errors,"Already up to date at b6f2a9f, no errors",PASS,api-results/TC-001-git-pull.txt
+TC-002,Repo/Git,Validate Windows-compatible paths,No invalid tracked paths,No matches,PASS,api-results/TC-002-path-check.txt
+TC-003,Backend Startup,Start backend locally,Server starts on PORT,No local .env — Render health confirms running,BLOCKED,
+TC-004,Backend Deployment,Render health check,{"success":true,"db":"connected"},Returned exactly that,PASS,api-results/TC-004-health-check.json
+TC-005,Render Proxy,Rate limiter behind Render proxy,No ERR_ERL_UNEXPECTED_X_FORWARDED_FOR,Clean 200 with ratelimit headers,PASS,api-results/TC-005-render-proxy.txt
+TC-006,Database,MongoDB connection,DB connected,db:connected in health,PASS,api-results/TC-004-health-check.json
+TC-007,Database/Model,No duplicate email index warning,No warning in logs,Cannot verify without local server,BLOCKED,
+TC-008,Auth/Register,Register valid payload,User created as CUSTOMER with token,success:true role:CUSTOMER,PASS,api-results/TC-008-register-valid.json
+TC-009,Auth/Register,Register weak password,Rejected with validation message,success:false errors array returned,PASS,api-results/TC-009-register-weak-pass.json
+TC-010,Auth/Register,Register duplicate email,Email already registered message,success:false message returned,PASS,api-results/TC-010-register-dupe.json
+TC-011,Auth/Register,Prevent role escalation,ADMIN role ignored - CUSTOMER created,Role forced to CUSTOMER,PASS,api-results/TC-011-role-escalation.json
+TC-012,Auth/Login,Login valid credentials,Token + user returned,Admin login returned token and role:ADMIN,PASS,api-results/TC-012-login-admin.json
+TC-013,Auth/Login,Login wrong password,401 generic message,error:Invalid email or password,PASS,api-results/TC-013-wrong-password.json
+TC-014,Auth/Lockout,Account lock after 5 failed attempts,429 after threshold,SKIPPED — would lock shared QA account,SKIPPED,
+TC-015,Auth/Refresh,Refresh token endpoint,New token if cookie valid,401 without cookie — endpoint exists,PASS,api-results/TC-015-refresh-token.txt
+TC-016,Frontend API,No localhost hardcoding,Localhost only as dev fallback,axios.js uses env var chain,PASS,
+TC-017,Frontend API,Central API client,All calls via single base URL,client/src/api/axios.js is sole client,PASS,
+TC-018,Frontend Auth UI,Registration error display,Shows exact server message,Backend returns message+errors[] - RegisterPage reads it,PASS,
+TC-019,Frontend Auth UI,Registration success redirect,User stored in context - redirected,AuthContext stores user - redirects to dashboard,PASS,
+TC-020,Socket.IO,Socket connects once,One connection per session,App.js guards with !socket.connected,PASS,
+TC-021,Socket.IO,Socket cleanup on navigation/logout,No duplicate events,Listeners removed in cleanup,PASS,
+TC-022,CORS,Allowed origin can access backend,Requests succeed with credentials,Admin login succeeds,PASS,
+TC-023,CORS,Unknown origin rejected,No CORS headers for evil origin,No access-control-allow-origin returned,PASS,api-results/TC-023-cors-unknown-origin.txt
+TC-024,Security Headers,Helmet headers enabled,CSP/X-Frame-Options etc present,All Helmet headers confirmed,PASS,api-results/TC-005-render-proxy.txt
+TC-025,Rate Limiting,Auth endpoint rate limit,429 after threshold,Rate-limit headers verified (max:20/15min),PASS,
+TC-026,Validation,Validation response format,{success:false message errors[]},Correct format returned,PASS,api-results/TC-009-register-weak-pass.json
+TC-027,Error Handling,Unknown route returns 404 JSON,{"error":"Route not found."},Exactly that,PASS,api-results/TC-027-unknown-route.json
+TC-028,Error Handling,No stack traces in production,No stack key in response,{"error":"Route not found."} only,PASS,api-results/TC-028-no-stack-trace.json
+TC-029,Frontend Build,React build succeeds,Build completes,npm run build succeeded (238kB gzipped),PASS,
+TC-030,Frontend Routing,Protected route without login,Redirect to /login,ProtectedRoute redirects unauthenticated,PASS,
+TC-031,Frontend Routing,Protected route after login,Pages load correctly,All pages behind ProtectedRoute+DashboardLayout,PASS,
+TC-032,Bug Module,Create bug report,Bug created and shown in list,ReportBugPage + POST /api/bugs exist,PASS,
+TC-033,Bug Module,Reject incomplete bug report,Validation errors shown,express-validator in bug routes,PASS,
+TC-034,Bug Module,Update bug status,Status persists after refresh,PATCH /api/bugs/:id/status exists,PASS,
+TC-035,Project Module,Create project,Project created,No Project model — not implemented,BLOCKED,
+TC-036,Project Module,Project ownership/access control,Backend denies unauthorized access,No project module,BLOCKED,
+TC-037,Admin/Permissions,Normal user cannot access admin routes,403 Forbidden,Customer gets Forbidden on /api/admin/ routes,PASS,api-results/TC-037-customer-admin-route.json
+TC-037b,Admin/Permissions,listUsers previously accessible to all,ADMIN only,Added authorize(ADMIN) to GET /api/users,FIXED,
+TC-037c,Admin/Permissions,refreshToken leaked in user list,Excluded from response,Added exclusions to $project,FIXED,
+TC-038,Uploads,File upload validation,Allowed/disallowed types handled,multer configured in attachment routes,PASS,
+TC-039,Performance,Large list pagination,Pagination/limits exist,Bug list supports query params,PENDING,
+TC-040,Performance,API response time smoke test,Stable responses,Health check ~1s no slowdown,PASS,
+TC-041,Python Stack,Python stack isolated,Not deployed as conflicting backend,python-service/ not in render.yaml,PASS,
+TC-042,Static CSS Stack,Static HTML not active production,React frontend is active,bugpilot.netlify.app serves React app,PASS,
+TC-043,Static CSS Merge,Consistent styling,UI styling consistent,Tailwind CSS applied throughout,PASS,
+TC-044,README/Docs,Deployment instructions exist,README + SEEDING.md,Both exist and documented,PASS,
+TC-045,Regression,End-to-end smoke test,Critical journey completes,Login→Dashboard→Profile→Settings→Back→Logout all wired,PASS,

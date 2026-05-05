@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   HiMenuAlt2,
@@ -12,6 +13,7 @@ import {
 
 const Navbar = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const dropdownRef = useRef(null);
@@ -36,13 +38,23 @@ const Navbar = ({ onMenuClick }) => {
       .slice(0, 2);
   };
 
+  const goToProfile = () => {
+    setDropdownOpen(false);
+    navigate('/profile');
+  };
+
+  const goToSettings = () => {
+    setDropdownOpen(false);
+    navigate('/settings');
+  };
+
   const getRoleBadgeColor = (role) => {
     switch (role) {
-      case 'admin':
+      case 'ADMIN':
         return 'bg-purple-100 text-purple-700';
-      case 'developer':
+      case 'DEVELOPER':
         return 'bg-blue-100 text-blue-700';
-      case 'tester':
+      case 'TESTER':
         return 'bg-green-100 text-green-700';
       default:
         return 'bg-gray-100 text-gray-700';
@@ -115,11 +127,19 @@ const Navbar = ({ onMenuClick }) => {
                   </span>
                 </div>
                 <div className="py-1">
-                  <button className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                  <button
+                    type="button"
+                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    onClick={goToProfile}
+                  >
                     <HiUser className="w-4 h-4 text-gray-400" />
                     Profile
                   </button>
-                  <button className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                  <button
+                    type="button"
+                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    onClick={goToSettings}
+                  >
                     <HiCog className="w-4 h-4 text-gray-400" />
                     Settings
                   </button>

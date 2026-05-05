@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { HiOutlineTicket, HiMail, HiLockClosed, HiEye, HiEyeOff } from 'react-icons/hi';
-import { FaGithub } from 'react-icons/fa';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -48,7 +47,7 @@ const LoginPage = () => {
           <div className="inline-flex items-center justify-center w-14 h-14 bg-white/10 backdrop-blur-sm rounded-2xl mb-4 border border-white/20">
             <HiOutlineTicket className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white">BugTrackr</h1>
+          <h1 className="text-3xl font-bold text-white">BugPilot</h1>
           <p className="text-blue-200 mt-1 text-sm">Track, manage, and squash bugs efficiently</p>
         </div>
 
@@ -138,24 +137,6 @@ const LoginPage = () => {
               )}
             </button>
 
-            {/* Divider */}
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-3 text-gray-500">or continue with</span>
-              </div>
-            </div>
-
-            {/* GitHub */}
-            <button
-              type="button"
-              className="w-full py-2.5 px-4 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center gap-2"
-            >
-              <FaGithub className="w-5 h-5" />
-              GitHub
-            </button>
           </form>
 
           {/* Register link */}

@@ -15,6 +15,8 @@ import ReportsPage from "./pages/reports/ReportsPage";
 import UserManagementPage from "./pages/users/UserManagementPage";
 import UserStoriesPage from "./pages/stories/UserStoriesPage";
 import RolesPermissionsPage from "./pages/roles/RolesPermissionsPage";
+import ProfilePage from "./pages/profile/ProfilePage";
+import SettingsPage from "./pages/settings/SettingsPage";
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -100,6 +102,8 @@ function App() {
                       </AdminRoute>
                     }
                   />
+                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
                   <Route
                     path="*"
                     element={<Navigate to="/dashboard" replace />}

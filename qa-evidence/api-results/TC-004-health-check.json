@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 {"success":true,"message":"BugPilot API is running","timestamp":"2026-05-05T01:27:54.462Z","uptime":1352,"db":"connected"}
+=======
+{"success":true,"message":"BugPilot API is running","timestamp":"2026-05-05T01:50:04.222Z","uptime":2682,"db":"connected"}
+>>>>>>> 4096b68354f45a607e2bbc49a936a9b7b4c2688e

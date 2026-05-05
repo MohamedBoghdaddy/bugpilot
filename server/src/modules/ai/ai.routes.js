@@ -5,6 +5,7 @@ import {
   classifyPriority,
   getRecommendedAssignee,
   getBugSummary,
+  generateStoryController,
 } from "./ai.controller.js";
 
 const router = express.Router();
@@ -46,7 +47,7 @@ router.post(
 router.post(
   "/story",
   [body("title").optional().trim(), body("description").optional().trim()],
-  generateStory,
+  generateStoryController,
 );
 
 export default router;

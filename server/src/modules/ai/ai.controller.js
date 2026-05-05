@@ -35,7 +35,7 @@ export const getBugSummary = async (req, res, next) => {
   }
 };
 
-export const generateStory = async (req, res, next) => {
+export const generateStoryController = async (req, res, next) => {
   try {
     const result = await generateStory(req.body.title, req.body.description);
     res.json(result);
